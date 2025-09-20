@@ -1,0 +1,39 @@
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import "./assets/styles/variables.css";
+import "./assets/styles/clip-paths.css";
+import App from "./App";
+import { BrowserRouter as Router } from "react-router-dom";
+import { Provider } from "react-redux";
+import store from "./state/redux/store";
+import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
+import WebSocketProvider from "./state/context/WebSocket";
+import InAppNotificationsProvider from "./state/context/InAppNotifications";
+import AuthProvider from "./state/context/Auth";
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <Provider store={store}>
+      <Router>
+        <AuthProvider>
+          <WebSocketProvider>
+            <InAppNotificationsProvider>
+              <App />
+            </InAppNotificationsProvider>
+          </WebSocketProvider>
+        </AuthProvider>
+      </Router>
+    </Provider>
+  </React.StrictMode>
+);
+
+// register service worker
+serviceWorkerRegistration.register({
+  bypassNodeEnvProduction: true,
+});
+// register firebase messaging service worker
+serviceWorkerRegistration.register({
+  bypassNodeEnvProduction: true,
+  serviceWorkerUrl: "/firebase-messaging-sw.js",
+});

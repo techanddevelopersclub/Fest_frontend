@@ -1,0 +1,124 @@
+.page {
+  padding: 1rem;
+  overflow: auto;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Events List */
+.actions {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--color-text-light-admin);
+}
+
+.action:hover {
+  color: var(--color-primary-500);
+}
+
+/* Events Create */
+h4.title {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+p.subtitle {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--color-text-light-admin);
+  margin: -0.5rem 0 0.5rem 0;
+}
+
+p.error {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--color-error-500);
+  margin: 0;
+}
+
+p.loading {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--color-text-light-admin);
+  margin: 0;
+}
+
+.eventCard {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  container-type: inline-size;
+}
+
+button.submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5rem;
+  width: 100%;
+  border-radius: 0.5rem;
+  border: none;
+  background-color: var(--color-primary-500);
+  color: var(--color-background-admin);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+button.submit:hover {
+  background-color: var(--color-primary-600);
+}
+
+/* event details */
+select.selectEvent {
+  height: 2.5rem;
+  width: 100%;
+  border-radius: 0.5rem;
+  outline: 0;
+  border: none;
+  background-color: var(--color-background-dark-admin);
+  color: var(--color-text-light-admin);
+  font-size: 1rem;
+  font-weight: 400;
+  padding: 0 0.5rem;
+  cursor: pointer;
+}
+
+select.selectEvent:focus {
+  outline: 0;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.detail {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.detail span {
+  background-color: var(--color-background-admin);
+  padding: 0.5rem;
+  border-radius: 0.4rem;
+}

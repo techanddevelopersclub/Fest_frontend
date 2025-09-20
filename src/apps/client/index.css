@@ -1,0 +1,12 @@
+::view-transition-old(dialog-mobile) {
+  animation: slide-down 0.25s ease-out forwards;
+}
+
+@keyframes slide-down {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}

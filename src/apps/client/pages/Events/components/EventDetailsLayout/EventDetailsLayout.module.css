@@ -1,0 +1,107 @@
+.page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.top {
+  display: flex;
+}
+
+.left {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.topNavigationBar {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  overflow-x: auto;
+  justify-content: space-between;
+}
+
+.back {
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tabs .tab {
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--color-text);
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+}
+
+.tabs .tab:hover {
+  background-color: hsla(var(--color-white-hsl-values), 0.1);
+}
+
+.tabs .tab.active {
+  background-color: hsla(var(--color-white-hsl-values), 0.1);
+}
+
+.right {
+  height: 100%;
+  width: 100%;
+  min-width: 250px;
+  max-width: 300px;
+}
+
+.right .title {
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.03rem;
+  color: var(--color-text);
+  padding: 1rem 1.5rem;
+  padding-bottom: 0;
+  margin: 0;
+  margin-bottom: -0.5rem;
+}
+
+@media screen and (max-width: 768px) {
+  .container {
+    padding-bottom: var(--bottom-navigation-bar-height);
+  }
+
+  .top {
+    flex-direction: column;
+  }
+
+  .right {
+    width: 100%;
+    max-width: 100%;
+    background-color: transparent;
+  }
+
+  .right .title {
+    padding: 1rem;
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+}
