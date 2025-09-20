@@ -17,7 +17,7 @@
   ],
   "headers": [
     {
-      "source": "/(.*\\.(js|mjs))",
+      "source": "/(.*\\.(js|mjs))$",
       "headers": [
         {
           "key": "Content-Type",
@@ -26,7 +26,7 @@
       ]
     },
     {
-      "source": "/(.*\\.css)",
+      "source": "/(.*\\.css)$",
       "headers": [
         {
           "key": "Content-Type",
@@ -35,7 +35,7 @@
       ]
     },
     {
-      "source": "/(.*\\.json)",
+      "source": "/(.*\\.json)$",
       "headers": [
         {
           "key": "Content-Type",
