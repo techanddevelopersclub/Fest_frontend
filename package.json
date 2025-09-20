@@ -59,7 +59,8 @@
     "build": "tsc && vite build",
     "serve": "vite preview",
     "test": "vitest",
-    "test:coverage": "vitest run --coverage --watch=false"
+    "test:coverage": "vitest run --coverage --watch=false",
+    "vercel-build": "npm run build"
   },
   "eslintConfig": {
     "extends": [
