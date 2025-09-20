@@ -56,8 +56,8 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "build:skip-tsc": "vite build",
+    "build": "vite build",
+    "build:with-tsc": "tsc --noEmit && vite build",
     "serve": "vite preview",
     "test": "vitest",
     "test:coverage": "vitest run --coverage --watch=false",

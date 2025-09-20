@@ -26,7 +26,7 @@ export default defineConfig({
   // },
 
   build: {
-    outDir: "../dist/web",
+    outDir: "dist",
     emptyOutDir: true,
     reportCompressedSize: true,
     commonjsOptions: {
