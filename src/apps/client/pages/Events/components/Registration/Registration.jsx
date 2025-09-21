@@ -79,7 +79,7 @@ const Registration = ({ event = {}, close }) => {
     });
   };
 
-const handleSubmit = (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
   setError(null);
 
@@ -87,11 +87,22 @@ const handleSubmit = (e) => {
     // Paid event → open payment modal directly
     setShowPaymentModal(true);
   } else {
-    // Free event → mark registration as done (or just close modal)
-    toast.success("Registered successfully");
-    close();
+    try {
+      await createParticipant({
+        event: event._id,
+        leader: user._id,
+        isTeam: event.minTeamSize > 1,
+        teamName: participant.teamName,
+        members: participant.members,
+      }).unwrap();
+      toast.success("Registered successfully");
+      close();
+    } catch (err) {
+      toast.error(err?.data?.error || "Registration failed");
+    }
   }
 };
+
 
 
   // UPI QR link generator using environment variables
