@@ -40,6 +40,9 @@ const EventForm = ({ onSubmit, defaultValue, onChange }) => {
     entryPassDistributionStart: "",
     entryPassDistributionEnd: "",
 
+    // Preserve the _id from defaultValue for updates
+    _id: defaultValue?._id || null,
+    
     ...(defaultValue || {}),
   });
 

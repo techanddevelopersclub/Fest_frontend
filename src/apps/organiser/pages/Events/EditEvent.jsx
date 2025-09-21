@@ -7,17 +7,24 @@ import {
 } from "../../../../state/redux/events/eventsApi";
 import EventForm from "./components/EventForm";
 import LoadingSpinner from "../../../../components/LoadingSpinner/LoadingSpinner";
-import { useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { toast } from "../../components/Toast";
 
 const EditEvent = () => {
-  const location = useLocation();
-  const eventId = location.pathname.split("/").pop();
+  const { id: eventId } = useParams();
   const { data: { event: initialEvent } = {}, isLoading: initialEventLoading } =
     useGetEventByIdQuery(eventId);
   const [updateEvent, { error }] = useUpdateEventMutation();
 
   const handleSubmit = (event) => {
+    console.log("Submitting event:", event);
+    console.log("Event ID:", event._id);
+    
+    if (!event._id) {
+      toast.error("Event ID is missing. Cannot update event.");
+      return;
+    }
+    
     toast.promise(updateEvent(event).unwrap(), {
       pending: "Updating event...",
       success: "Event updated successfully!",

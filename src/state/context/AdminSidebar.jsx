@@ -142,6 +142,10 @@ const AdminSidebarProvider = ({ children }) => {
     activeLink,
   };
 
+  // Debug logging
+  console.log("🔍 AdminSidebar - links:", links);
+  console.log("🔍 AdminSidebar - Payment Verification link exists:", links.some(link => link.text === "Payment Verification"));
+
   return (
     <AdminSidebarContext.Provider value={value}>
       {children}

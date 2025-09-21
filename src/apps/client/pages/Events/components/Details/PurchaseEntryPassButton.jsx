@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useGetEventByIdQuery } from "../../../../../../state/redux/events/eventsApi";
 import { viewTransition } from "../../../../../../utils/view_transition";
 import { useSelector } from "react-redux";
@@ -13,6 +13,7 @@ const PurchaseEntryPassButton = ({ onClick }) => {
   const isLoggedIn = useSelector(selectIsLoggedIn);
   const isVerified = useSelector(selectIsVerified);
   const location = useLocation();
+  const navigate = useNavigate();
   const eventId = location.pathname.split("/").pop();
   const { data: { event } = {} } = useGetEventByIdQuery(eventId);
   const today = new Date();

@@ -32,6 +32,13 @@ const pendingEntryPassApi = api.injectEndpoints({
       }),
       providesTags: ["PendingEntryPass"],
     }),
+    listMyPendingEntryPasses: builder.query({
+      query: (params) => ({
+        url: "/pending-entry-passes/my",
+        params,
+      }),
+      providesTags: ["PendingEntryPass"],
+    }),
   }),
 });
 
@@ -40,6 +47,7 @@ export const {
   useVerifyPendingEntryPassMutation,
   useRejectPendingEntryPassMutation,
   useListPendingEntryPassesQuery,
+  useListMyPendingEntryPassesQuery,
 } = pendingEntryPassApi;
 
 export default pendingEntryPassApi;

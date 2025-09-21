@@ -24,8 +24,16 @@ const PaymentVerification = () => {
   const participantsParams = useMemo(() => ({ q: search || undefined, page, limit }), [search, page]);
   const entryPassParams = useMemo(() => ({ page, limit }), [page]);
 
-  const { data: pData, refetch: refetchP } = useListPendingParticipantsQuery(participantsParams);
-  const { data: eData, refetch: refetchE } = useListPendingEntryPassesQuery(entryPassParams);
+  const { data: pData, refetch: refetchP, error: pError, isLoading: pLoading } = useListPendingParticipantsQuery(participantsParams);
+  const { data: eData, refetch: refetchE, error: eError, isLoading: eLoading } = useListPendingEntryPassesQuery(entryPassParams);
+
+  // Debug logging
+  console.log("🔍 PaymentVerification - pData:", pData);
+  console.log("🔍 PaymentVerification - eData:", eData);
+  console.log("🔍 PaymentVerification - pError:", pError);
+  console.log("🔍 PaymentVerification - eError:", eError);
+  console.log("🔍 PaymentVerification - pLoading:", pLoading);
+  console.log("🔍 PaymentVerification - eLoading:", eLoading);
   const [verifyParticipant] = useVerifyPendingParticipantMutation();
   const [rejectParticipant] = useRejectPendingParticipantMutation();
   const [verifyEntryPass] = useVerifyPendingEntryPassMutation();
@@ -121,6 +129,15 @@ const PaymentVerification = () => {
             <Button onClick={() => setActiveTab("participants")} variant={activeTab === "participants" ? "default" : "secondary"}>Participants</Button>
             <Button onClick={() => setActiveTab("entryPasses")} variant={activeTab === "entryPasses" ? "default" : "secondary"} style={{ marginLeft: 8 }}>Entry Passes</Button>
           </div>
+        </div>
+        
+        {/* Debug Information */}
+        <div style={{ marginBottom: 16, padding: 12, backgroundColor: "#f5f5f5", borderRadius: 8, fontSize: 12 }}>
+          <div><strong>Debug Info:</strong></div>
+          <div>Participants Loading: {String(pLoading)} | Error: {pError ? pError.message : "None"}</div>
+          <div>Entry Passes Loading: {String(eLoading)} | Error: {eError ? eError.message : "None"}</div>
+          <div>Participants Data: {pData ? (Array.isArray(pData) ? pData.length : Object.keys(pData).length) : "null"} items</div>
+          <div>Entry Passes Data: {eData ? (Array.isArray(eData) ? eData.length : Object.keys(eData).length) : "null"} items</div>
         </div>
         <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
           <input

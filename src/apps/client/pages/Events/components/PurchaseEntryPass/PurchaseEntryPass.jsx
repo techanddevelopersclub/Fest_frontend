@@ -5,8 +5,8 @@ import { useSelector } from "react-redux";
 import { selectUser } from "../../../../../../state/redux/auth/authSlice";
 import Button from "../../../../atoms/Button";
 import Modal from "../../../../components/Modal/Modal";
-import { usePurchaseEntryPassMutation } from "../../../../../../state/redux/entryPass/entryPassApi";
-import { useCreatePendingEntryPassMutation, useListPendingEntryPassesQuery } from "../../../../../../state/redux/pendingEntryPass/pendingEntryPassApi";
+import { usePurchaseEntryPassMutation, useGetEntryPassesBySelfQuery } from "../../../../../../state/redux/entryPass/entryPassApi";
+import { useCreatePendingEntryPassMutation, useListMyPendingEntryPassesQuery } from "../../../../../../state/redux/pendingEntryPass/pendingEntryPassApi";
 
 import { toast } from "../../../../components/Toast";
 import ApplyPromoCode from "../../../../components/ApplyPromoCode/ApplyPromoCode";
@@ -19,17 +19,60 @@ const PurchaseEntryPass = ({ event = {}, close }) => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [uploadedFileUrl, setUploadedFileUrl] = useState("");
   const [pendingVerification, setPendingVerification] = useState(false);
-  // Fetch pending verification status for this user/event on mount
-  const { data: pendingEntryPassesRaw } = useListPendingEntryPassesQuery();
+  const [hasVerifiedEntryPass, setHasVerifiedEntryPass] = useState(false);
+  
+  // Fetch pending verification status and verified entry passes for this user/event on mount
+  // Poll every 10 seconds when there's a pending verification to check for updates
+  const { data: pendingEntryPassesRaw, isLoading: pendingLoading, error: pendingError, refetch: refetchPending } = useListMyPendingEntryPassesQuery(
+    { event: event._id }, 
+    {
+      pollingInterval: pendingVerification ? 10000 : 0, // Poll every 10 seconds if pending
+    }
+  );
+  const { data: { entryPasses } = {}, isLoading: entryPassLoading, error: entryPassError, refetch: refetchEntryPasses } = useGetEntryPassesBySelfQuery(undefined, {
+    pollingInterval: pendingVerification ? 10000 : 0, // Poll every 10 seconds if pending
+  });
+
+  
   useEffect(() => {
+    // Handle pending entry passes - check if user has pending payment for this event
     if (pendingEntryPassesRaw && Array.isArray(pendingEntryPassesRaw)) {
       const isPending = pendingEntryPassesRaw.some(
-        (p) => p.event === event._id && p.user === user._id && p.paymentStatus === "pending"
+        (p) => {
+          // Check if this pending entry pass is for the current event and user, and status is pending
+          // p.event is a populated object, so we need to check p.event._id
+          const eventMatch = (p.event === event._id || String(p.event) === String(event._id)) || 
+                           (p.event && p.event._id && (p.event._id === event._id || String(p.event._id) === String(event._id)));
+          const userMatch = p.user === user._id || String(p.user) === String(user._id);
+          const statusPending = p.paymentStatus === "pending";
+          
+          return eventMatch && userMatch && statusPending;
+        }
       );
       setPendingVerification(isPending);
     }
-  }, [pendingEntryPassesRaw, event._id, user._id]);
-  const [verificationStatus, setVerificationStatus] = useState(false);
+    
+    // Check if user already has a verified entry pass for this event
+    if (entryPasses && Array.isArray(entryPasses)) {
+      const hasEntryPass = entryPasses.some(
+        (ep) => {
+          // Check if this entry pass is for the current event
+          const eventMatch = ep.event === event._id || ep.event?._id === event._id;
+          return eventMatch;
+        }
+      );
+      setHasVerifiedEntryPass(hasEntryPass);
+    }
+  }, [pendingEntryPassesRaw, entryPasses, event._id, user._id]);
+
+  // Separate effect to handle transition from pending to verified
+  useEffect(() => {
+    if (hasVerifiedEntryPass && pendingVerification) {
+      setPendingVerification(false);
+      toast.success("Your payment has been verified! Entry pass is now active.");
+    }
+  }, [hasVerifiedEntryPass, pendingVerification]);
+  
   const [createPendingEntryPass, { isLoading: isPendingLoading }] = useCreatePendingEntryPassMutation();
 
   const handleChange = (e) => {
@@ -40,7 +83,14 @@ const handleSubmit = (e) => {
   e.preventDefault();
   setError(null);
 
-  if (event.registrationFeesInINR > 0) {
+  // Check if user already has a verified entry pass
+  if (hasVerifiedEntryPass) {
+    toast.success("You already have an entry pass for this event!");
+    close();
+    return;
+  }
+
+  if (event.entryPassPriceInINR > 0) {
     // Paid event → open payment modal directly
     setShowPaymentModal(true);
   } else {
@@ -55,7 +105,7 @@ const handleSubmit = (e) => {
     const accountNumber = import.meta.env.VITE_UPI_ACCOUNT_NUMBER || event.upiAccountNumber || "demoaccount";
     const ifsc = import.meta.env.VITE_UPI_IFSC || event.upiIfsc || "demoifsc";
     const name = import.meta.env.VITE_UPI_NAME ||  "CIESYZC";
-    const amount = event.registrationFeesInINR || 1;
+    const amount = event.entryPassPriceInINR || 1;
     return `upi://pay?pa=${accountNumber}@${ifsc}.ifsc.npci&pn=${name}&am=${amount}&cu=INR`;
   };
 
@@ -93,10 +143,14 @@ const handleSubmit = (e) => {
         user: user._id,
         paymentProofUrl: uploadedFileUrl,
       }).unwrap();
+      
       toast.success("Submitted for verification");
       setShowPaymentModal(false);
       setPendingVerification(true);
-      // Optionally start polling for verification status here
+      
+      // Manually refetch data to ensure we get the latest status
+      refetchPending();
+      refetchEntryPasses();
     } catch (err) {
       toast.error(err?.data?.error || "Failed to submit for verification");
     }
@@ -112,6 +166,17 @@ const handleSubmit = (e) => {
         title={!event ? "Event not found" : "Login to register"}
         close={close}
       />
+    );
+  }
+
+  // Show loading state while checking payment status
+  if (pendingLoading || entryPassLoading) {
+    return (
+      <Modal title={event.name} close={close}>
+        <div style={{ textAlign: "center", padding: "20px" }}>
+          <p>Loading payment status...</p>
+        </div>
+      </Modal>
     );
   }
 
@@ -136,7 +201,7 @@ const handleSubmit = (e) => {
               orderType={`event:${event._id}`}
               orderAmount={event.entryPassPriceInINR}
               onApply={handleApplyPromoCode}
-              disabled={pendingVerification}
+              disabled={pendingVerification || hasVerifiedEntryPass}
             />
           )}
           {error && <p className={styles.error}>{error}</p>}
@@ -144,9 +209,14 @@ const handleSubmit = (e) => {
             variant="secondary"
             type="submit"
             className={styles.submit}
-            disabled={pendingVerification || isLoading}
+            disabled={pendingVerification || isLoading || hasVerifiedEntryPass}
           >
-            {event.entryPassPriceInINR > 0 ? "Pay and Get Pass" : "Get Pass"}
+            {hasVerifiedEntryPass 
+              ? "Entry Pass Already Purchased" 
+              : event.entryPassPriceInINR > 0 
+                ? "Pay and Get Pass" 
+                : "Get Pass"
+            }
           </Button>
         </form>
       </Modal>
@@ -182,11 +252,27 @@ const handleSubmit = (e) => {
       )}
 
       {pendingVerification && (
-        <Modal title="Pending Verification" close={null}>
+        <Modal title="Payment Verification Status" close={null}>
           <div style={{ textAlign: "center" }}>
             <p>Your payment proof has been submitted.</p>
-            <p>Status: <b>{verificationStatus ? "Verified" : "Pending"}</b></p>
-            {!verificationStatus && <p>Please wait while we verify your payment.</p>}
+            <p>Status: <b>Pending Verification</b></p>
+            <p>Please wait while we verify your payment. You will receive an email once verified.</p>
+          </div>
+        </Modal>
+      )}
+
+      {hasVerifiedEntryPass && (
+        <Modal title="Entry Pass Status" close={close}>
+          <div style={{ textAlign: "center" }}>
+            <p>✅ <b>Your entry pass has been verified!</b></p>
+            <p>You can now attend this event.</p>
+            <Button 
+              variant="success" 
+              onClick={close}
+              style={{ marginTop: "10px" }}
+            >
+              Close
+            </Button>
           </div>
         </Modal>
       )}
