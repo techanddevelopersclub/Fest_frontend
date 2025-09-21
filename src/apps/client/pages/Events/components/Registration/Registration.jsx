@@ -88,10 +88,13 @@ const handleSubmit = async (e) => {
     setShowPaymentModal(true);
   } else {
     try {
+
+      const leaderId = user?._id;
+const eventId = event?._id;
 await createParticipant({
   participant: {
-    event: event._id,
-    leader: user._id,
+    event: eventId,
+    leader: leaderId,
     isTeam: event.minTeamSize > 1,
     teamName: participant.teamName,
     members: participant.members,
