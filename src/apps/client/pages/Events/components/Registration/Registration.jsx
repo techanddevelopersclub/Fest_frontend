@@ -88,13 +88,16 @@ const handleSubmit = async (e) => {
     setShowPaymentModal(true);
   } else {
     try {
-      await createParticipant({
-        event: event._id,
-        leader: user._id,
-        isTeam: event.minTeamSize > 1,
-        teamName: participant.teamName,
-        members: participant.members,
-      }).unwrap();
+await createParticipant({
+  participant: {
+    event: event._id,
+    leader: user._id,
+    isTeam: event.minTeamSize > 1,
+    teamName: participant.teamName,
+    members: participant.members,
+  },
+}).unwrap();
+
       toast.success("Registered successfully");
       close();
     } catch (err) {
