@@ -89,16 +89,14 @@ const handleSubmit = async (e) => {
   } else {
     try {
 
-      const leaderId = user?._id;
-const eventId = event?._id;
+
 await createParticipant({
-  participant: {
-    event: eventId,
-    leader: leaderId,
-    isTeam: event.minTeamSize > 1,
-    teamName: participant.teamName,
-    members: participant.members,
-  },
+        event: event._id,
+        leader: user._id,
+        isTeam: event.minTeamSize > 1,
+        teamName: participant.teamName,
+        members: participant.members,
+       
 }).unwrap();
 
       toast.success("Registered successfully");
