@@ -6,8 +6,8 @@ class PaymentService {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: amount.toString(),
         currency,
-        name: "Festify",
-        description: description || "Festify Payment",
+        name: "Cieszyc",
+        description: description || "Cieszyc Payment",
         order_id: orderId,
         notes,
         prefill: {

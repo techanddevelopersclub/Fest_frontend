@@ -6,7 +6,7 @@ const PaymentDetails = ({ payment, close }) => {
     <Modal title="Payment Details" close={close}>
       <div className={styles.details}>
         <div className={styles.item}>
-          <p className={styles.key}>Festify Payment ID</p>
+          <p className={styles.key}>Cieszyc Payment ID</p>
           <p className={styles.value}>{payment?._id}</p>
         </div>
         <div className={styles.item}>

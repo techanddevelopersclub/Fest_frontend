@@ -19,7 +19,7 @@ const AppRoutes = () => {
       <Route
         path="/*"
         element={
-          <ThemeProvider defaultTheme="dark" storageKey="festify-theme">
+          <ThemeProvider defaultTheme="dark" storageKey="cieszyc-theme">
             <ClientIndex />
           </ThemeProvider>
         }
@@ -31,7 +31,7 @@ const AppRoutes = () => {
             <Suspense fallback={<FullPageLoading />}>
               <ThemeProvider
                 defaultTheme="light"
-                storageKey="festify-admin-theme"
+                storageKey="cieszyc-admin-theme"
               >
                 <AdminPanelIndex />
               </ThemeProvider>
@@ -46,7 +46,7 @@ const AppRoutes = () => {
             <Suspense fallback={<FullPageLoading />}>
               <ThemeProvider
                 defaultTheme="light"
-                storageKey="festify-org-theme"
+                storageKey="cieszyc-org-theme"
               >
                 <OrganiserPanelIndex />
               </ThemeProvider>

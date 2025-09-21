@@ -126,7 +126,7 @@ const Form = ({ onSubmit, defaultValue, onChange }) => {
         <GridItem sm={12} md={6} lg={4}>
           <Input.Text
             label="Domains"
-            placeholder="iitism.ac.in, festify.com"
+            placeholder="iitism.ac.in, cieszyc.com"
             onValidation={handleCanSubmit}
             defaultValue={promotion.pattern
               ?.filter((pattern) => /^domain:.*/g.test(pattern))

@@ -10,7 +10,7 @@ const Logo = ({ className, light = true }) => {
         color: light ? "white" : "var(--color-primary-500)",
       }}
     >
-      festify
+      cieszyc
     </Link>
   );
 };

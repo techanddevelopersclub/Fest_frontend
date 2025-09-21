@@ -1,7 +1,7 @@
 import leafstore from "leafstore-db";
 import InAppNotificationSchema from "./schemas/InAppNotification";
 
-const db = new leafstore("festify-db");
+const db = new leafstore("cieszyc-db");
 
 // models
 let InAppNotification;
