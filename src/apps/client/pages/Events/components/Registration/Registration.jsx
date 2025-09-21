@@ -18,9 +18,12 @@ const Registration = ({ event = {}, close }) => {
     leader: user?._id,
     members: [user?._id],
     teamName: "",
+    teamMemberNames: [user?.name || ""],
+    teamSize: 1,
   });
   const [error, setError] = useState(null);
   const [membersInput, setMembersInput] = useState("");
+  const [memberNamesInput, setMemberNamesInput] = useState("");
   const [createParticipant, { isLoading }] = useCreateParticipantMutation();
   const [promoCode, setPromoCode] = useState("");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -36,6 +39,17 @@ const Registration = ({ event = {}, close }) => {
       setPendingVerification(isPending);
     }
   }, [pendingParticipantsRaw, event._id, user._id]);
+
+  // Initialize member names input
+  useEffect(() => {
+    if (event.minTeamSize <= 1) {
+      // For solo events, initialize with user's name
+      setMemberNamesInput(user?.name || "");
+    } else {
+      // For team events, initialize empty
+      setMemberNamesInput("");
+    }
+  }, [event.minTeamSize, user?.name]);
   const [verificationStatus, setVerificationStatus] = useState(false);
   const [createPendingParticipant, { isLoading: isPendingLoading }] = useCreatePendingParticipantMutation();
 
@@ -65,17 +79,63 @@ const Registration = ({ event = {}, close }) => {
     setParticipant({
       ...participant,
       members: members,
+      teamSize: members.length,
+    });
+  };
+
+  const handleTeamMemberNamesChange = (e) => {
+    let memberNames = e.target.value
+      .split(",")
+      .map((name) => name.trim())
+      .filter((name) => name !== "");
+    
+    // For solo events, just use the entered name
+    if (event.minTeamSize <= 1) {
+      memberNames = memberNames.length > 0 ? memberNames : [user.name];
+    } else {
+      // For team events, add the leader's name
+      memberNames = [...memberNames, user.name];
+      memberNames = [...new Set(memberNames)];
+    }
+    
+    console.log("Team member names changed:", {
+      input: e.target.value,
+      processed: memberNames,
+      isTeam: event.minTeamSize > 1
+    });
+    
+    setMemberNamesInput(e.target.value);
+    setParticipant({
+      ...participant,
+      teamMemberNames: memberNames,
+      teamSize: memberNames.length,
     });
   };
 
   const handleRemoveMember = (index) => {
     let members = participant.members.filter((_, i) => i !== index);
-    members = [...members, user._id];
-    members = [...new Set(members)];
+    let memberNames = participant.teamMemberNames.filter((_, i) => i !== index);
+    
+    if (event.minTeamSize > 1) {
+      // For team events, add back the leader
+      members = [...members, user._id];
+      memberNames = [...memberNames, user.name];
+      members = [...new Set(members)];
+      memberNames = [...new Set(memberNames)];
+    } else {
+      // For solo events, ensure at least one name remains
+      if (memberNames.length === 0) {
+        memberNames = [user.name];
+      }
+    }
+    
     setMembersInput(members.join(", "));
+    setMemberNamesInput(memberNames.join(", "));
     setParticipant({
       ...participant,
       members: members,
+      teamMemberNames: memberNames,
+      teamSize: members.length,
     });
   };
 
@@ -88,16 +148,22 @@ const handleSubmit = async (e) => {
     setShowPaymentModal(true);
   } else {
     try {
-
-
-await createParticipant({
+      const participantData = {
         event: event._id,
         leader: user._id,
         isTeam: event.minTeamSize > 1,
         teamName: participant.teamName,
         members: participant.members,
-       
-}).unwrap();
+        teamMemberNames: participant.teamMemberNames,
+        teamSize: participant.teamSize,
+      };
+      
+      console.log("Sending participant data:", participantData);
+      
+      await createParticipant({
+        participant: participantData,
+        promoCode: promoCode || null,
+      }).unwrap();
 
       toast.success("Registered successfully");
       close();
@@ -146,14 +212,20 @@ await createParticipant({
       return;
     }
     try {
-      await createPendingParticipant({
+      const pendingData = {
         event: event._id,
         leader: user._id,
         isTeam: event.minTeamSize > 1,
         teamName: participant.teamName,
         members: participant.members,
+        teamMemberNames: participant.teamMemberNames,
+        teamSize: participant.teamSize,
         paymentProofUrl: uploadedFileUrl,
-      }).unwrap();
+      };
+      
+      console.log("Sending pending participant data:", pendingData);
+      
+      await createPendingParticipant(pendingData).unwrap();
       toast.success("Submitted for verification");
       setShowPaymentModal(false);
       setPendingVerification(true);
@@ -192,23 +264,25 @@ await createParticipant({
           </div>
         </div>
         <form className={styles.form} onSubmit={handleSubmit}>
+          <div className={styles.formGroup}>
+            <label htmlFor="teamName">
+              {event.minTeamSize > 1 ? "Team Name" : "Participant Name"}
+            </label>
+            <input
+              type="text"
+              name="teamName"
+              id="teamName"
+              required
+              className={styles.input}
+              onChange={handleChange}
+              disabled={pendingVerification}
+              placeholder={event.minTeamSize > 1 ? "Enter team name" : "Enter your name"}
+            />
+          </div>
+          
           {event.minTeamSize > 1 && (
             <div className={styles.formGroup}>
-              <label htmlFor="teamName">Team Name</label>
-              <input
-                type="text"
-                name="teamName"
-                id="teamName"
-                required
-                className={styles.input}
-                onChange={handleChange}
-                disabled={pendingVerification}
-              />
-            </div>
-          )}
-          {event.minTeamSize > 1 && (
-            <div className={styles.formGroup}>
-              <label htmlFor="teamMembers">Team Members</label>
+              <label htmlFor="teamMembers">Team Members (IDs)</label>
               <textarea
                 type="text"
                 name="teamMembers"
@@ -219,22 +293,38 @@ await createParticipant({
                 placeholder="Enter comma separated IDs of your team members."
                 disabled={pendingVerification}
               />
-              <div className={styles.members}>
-                {participant.members.map((member, index) => (
-                  <div className={styles.member} key={index}>
-                    <div className={styles.name}>{member}</div>
-                    <button
-                      className={styles.remove}
-                      onClick={() => handleRemoveMember(index)}
-                      disabled={pendingVerification}
-                    >
-                      &times;
-                    </button>
-                  </div>
-                ))}
-              </div>
             </div>
           )}
+          
+          <div className={styles.formGroup}>
+            <label htmlFor="teamMemberNames">
+              {event.minTeamSize > 1 ? "Team Member Names" : "Participant Name"}
+            </label>
+            <textarea
+              type="text"
+              name="teamMemberNames"
+              id="teamMemberNames"
+              className={styles.input}
+              onChange={handleTeamMemberNamesChange}
+              value={memberNamesInput}
+              placeholder={event.minTeamSize > 1 ? "Enter comma separated names of your team members." : "Enter your name"}
+              disabled={pendingVerification}
+            />
+            <div className={styles.members}>
+              {participant.teamMemberNames.map((memberName, index) => (
+                <div className={styles.member} key={index}>
+                  <div className={styles.name}>{memberName}</div>
+                  <button
+                    className={styles.remove}
+                    onClick={() => handleRemoveMember(index)}
+                    disabled={pendingVerification}
+                  >
+                    &times;
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
           {event.registrationFeesInINR > 0 && (
             <ApplyPromoCode
               onChange={(p) => setPromoCode(p)}
@@ -256,6 +346,9 @@ await createParticipant({
                 participant.members.length < event.minTeamSize) ||
               (event.minTeamSize > 1 &&
                 participant.members.length >= event.maxTeamSize) ||
+              !participant.teamName ||
+              !participant.teamMemberNames ||
+              participant.teamMemberNames.length === 0 ||
               isLoading
             }
           >
