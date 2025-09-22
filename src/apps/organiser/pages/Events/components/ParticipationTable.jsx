@@ -80,6 +80,21 @@ const ParticipationTable = ({ eventId }) => {
       modifier: (value) => value.email,
     },
     {
+      label: "Mobile",
+      key: "leader",
+      modifier: (value) => value.mobile,
+    },
+    {
+      label: "Branch",
+      key: "leader",
+      modifier: (value) => value.branchName,
+    },
+    {
+      label: "Year",
+      key: "leader",
+      modifier: (value) => value.yearOfGraduation,
+    },
+    {
       label: "Team Size",
       key: "teamSize",
       modifier: (value) => value || 1,

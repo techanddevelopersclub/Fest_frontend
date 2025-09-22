@@ -88,7 +88,15 @@ const PaymentVerification = () => {
           <tr><td colSpan={type === "participant" ? 6 : 5} style={{ textAlign: "center" }}>No records</td></tr>
         ) : rows.map((r) => (
           <tr key={r._id}>
-            <td style={{ textAlign: "center" }}>{(r.leader?.name || r.user?.name) ?? (r.leader || r.user)}</td>
+            <td style={{ textAlign: "center" }}>
+              {type === "participant"
+                ? ((r.leader?.name) ?? r.leader)
+                : (() => {
+                    const name = r.user?.name ?? r.user;
+                    const email = r.user?.email ? ` (${r.user.email})` : "";
+                    return `${name}${email}`;
+                  })()}
+            </td>
             <td style={{ textAlign: "center" }}>{r.event?.name || r.event}</td>
             {type === "participant" && <td style={{ textAlign: "center" }}>{r.teamName || "-"}</td>}
             <td style={{ textAlign: "center" }}>
