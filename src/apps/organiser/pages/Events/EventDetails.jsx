@@ -5,6 +5,7 @@ import Details from "./components/Details";
 import { useParams, useNavigate } from "react-router-dom";
 import Tabs from "../../../../components/AdminCommons/Tabs/Tabs";
 import ParticipationTable from "./components/ParticipationTable";
+import EntryPassTable from "./components/EntryPassTable/EntryPassTable";
 import { useGetEventsByOrganisationIdQuery } from "../../../../state/redux/events/eventsApi";
 import { selectUser } from "../../../../state/redux/auth/authSlice";
 import { useSelector } from "react-redux";
@@ -43,6 +44,16 @@ const EventDetails = () => {
         <Card>
           <div className={styles.eventCard}>
             <ParticipationTable eventId={eventId} />
+          </div>
+        </Card>
+      ),
+    },
+    {
+      label: "Entry Pass",
+      component: (
+        <Card>
+          <div className={styles.eventCard}>
+            <EntryPassTable eventId={eventId} />
           </div>
         </Card>
       ),

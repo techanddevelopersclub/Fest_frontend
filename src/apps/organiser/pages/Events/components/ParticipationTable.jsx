@@ -1,30 +1,55 @@
 import { useState, useMemo } from "react";
-import { useGetParticipationsByEventIdQuery } from "../../../../../state/redux/participants/participantsApi";
+import { useGetParticipationsByEventIdQuery, useUpdateParticipantAttendanceMutation } from "../../../../../state/redux/participants/participantsApi";
 import DataTable from "../../../../../components/AdminCommons/DataTable/DataTable";
 import { formatDateTime } from "../../../../../utils/time";
+import { exportParticipantsToCSV, downloadCSV } from "../../../../../utils/csvExport";
+import { Download, CheckCircle, XCircle, Clock } from "lucide-react";
 import styles from "./ParticipationTable.module.css";
 
 const ParticipationTable = ({ eventId }) => {
   const { data: { participations } = {} } =
     useGetParticipationsByEventIdQuery(eventId);
+  const [updateAttendance] = useUpdateParticipantAttendanceMutation();
   
   const [teamSizeFilter, setTeamSizeFilter] = useState("");
   const [teamNameFilter, setTeamNameFilter] = useState("");
+  const [attendanceFilter, setAttendanceFilter] = useState("");
 
-  // Filter data based on team size and team name
+  // Handle attendance update
+  const handleAttendanceUpdate = async (participantId, newAttendance) => {
+    try {
+      await updateAttendance({
+        participantId,
+        attendance: newAttendance,
+      }).unwrap();
+    } catch (error) {
+      console.error('Failed to update attendance:', error);
+    }
+  };
+
+  // Handle CSV download
+  const handleDownloadCSV = () => {
+    const csvContent = exportParticipantsToCSV(filteredParticipations);
+    const filename = `participants-${eventId}-${new Date().toISOString().split('T')[0]}.csv`;
+    downloadCSV(csvContent, filename);
+  };
+
+  // Filter data based on team size, team name, and attendance
   const filteredParticipations = useMemo(() => {
     if (!participations) return [];
     
     return participations.filter((participation) => {
       const teamSize = participation.teamSize || 1;
       const teamName = participation.teamName || "";
+      const attendance = participation.attendance || "pending";
       
       const teamSizeMatch = !teamSizeFilter || teamSize.toString() === teamSizeFilter;
       const teamNameMatch = !teamNameFilter || teamName.toLowerCase().includes(teamNameFilter.toLowerCase());
+      const attendanceMatch = !attendanceFilter || attendance === attendanceFilter;
       
-      return teamSizeMatch && teamNameMatch;
+      return teamSizeMatch && teamNameMatch && attendanceMatch;
     });
-  }, [participations, teamSizeFilter, teamNameFilter]);
+  }, [participations, teamSizeFilter, teamNameFilter, attendanceFilter]);
 
   // Get unique team sizes for filter dropdown
   const uniqueTeamSizes = useMemo(() => {
@@ -69,6 +94,68 @@ const ParticipationTable = ({ eventId }) => {
       key: "members",
       modifier: (value) => value.length,
     },
+    {
+      label: "Attendance",
+      key: "attendance",
+      modifier: (value, row) => {
+        const attendance = value || "pending";
+        const getAttendanceIcon = () => {
+          switch (attendance) {
+            case "present":
+              return <CheckCircle size={16} className={styles.presentIcon} />;
+            case "absent":
+              return <XCircle size={16} className={styles.absentIcon} />;
+            default:
+              return <Clock size={16} className={styles.pendingIcon} />;
+          }
+        };
+
+        const getAttendanceText = () => {
+          switch (attendance) {
+            case "present":
+              return "Present";
+            case "absent":
+              return "Absent";
+            default:
+              return "Pending";
+          }
+        };
+
+        return (
+          <div className={styles.attendanceCell}>
+            <div className={styles.attendanceStatus}>
+              {getAttendanceIcon()}
+              <span className={`${styles.attendanceText} ${styles[attendance]}`}>
+                {getAttendanceText()}
+              </span>
+            </div>
+            <div className={styles.attendanceActions}>
+              <button
+                onClick={() => handleAttendanceUpdate(row._id, "present")}
+                className={`${styles.attendanceBtn} ${styles.presentBtn} ${attendance === "present" ? styles.active : ""}`}
+                title="Mark as Present"
+              >
+                <CheckCircle size={14} />
+              </button>
+              <button
+                onClick={() => handleAttendanceUpdate(row._id, "absent")}
+                className={`${styles.attendanceBtn} ${styles.absentBtn} ${attendance === "absent" ? styles.active : ""}`}
+                title="Mark as Absent"
+              >
+                <XCircle size={14} />
+              </button>
+              <button
+                onClick={() => handleAttendanceUpdate(row._id, "pending")}
+                className={`${styles.attendanceBtn} ${styles.pendingBtn} ${attendance === "pending" ? styles.active : ""}`}
+                title="Mark as Pending"
+              >
+                <Clock size={14} />
+              </button>
+            </div>
+          </div>
+        );
+      },
+    },
   ];
 
   return (
@@ -104,14 +191,42 @@ const ParticipationTable = ({ eventId }) => {
         </div>
         
         <div className={styles.filterGroup}>
+          <label htmlFor="attendanceFilter">Filter by Attendance:</label>
+          <select
+            id="attendanceFilter"
+            value={attendanceFilter}
+            onChange={(e) => setAttendanceFilter(e.target.value)}
+            className={styles.filterSelect}
+          >
+            <option value="">All Status</option>
+            <option value="present">Present</option>
+            <option value="absent">Absent</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+        
+        <div className={styles.filterGroup}>
           <button
             onClick={() => {
               setTeamSizeFilter("");
               setTeamNameFilter("");
+              setAttendanceFilter("");
             }}
             className={styles.clearFilters}
           >
             Clear Filters
+          </button>
+        </div>
+        
+        <div className={styles.filterGroup}>
+          <button
+            onClick={handleDownloadCSV}
+            className={styles.downloadButton}
+            disabled={!filteredParticipations || filteredParticipations.length === 0}
+            title={`Download ${filteredParticipations.length} participants as CSV`}
+          >
+            <Download size={16} />
+            Download CSV ({filteredParticipations.length})
           </button>
         </div>
       </div>

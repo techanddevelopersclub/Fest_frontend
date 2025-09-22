@@ -8,6 +8,67 @@ import { useRegisterMutation } from "../../../state/redux/auth/authApi";
 import FormProgress from "../../../components/FormProgress/FormProgress";
 import imageCompression from "browser-image-compression";
 
+// Common colleges list
+const COMMON_COLLEGES = [
+  "Indian Institute of Technology (IIT)",
+  "National Institute of Technology (NIT)",
+  "Birla Institute of Technology and Science (BITS)",
+  "Delhi Technological University (DTU)",
+  "Netaji Subhas University of Technology (NSUT)",
+  "Jamia Millia Islamia",
+  "University of Delhi",
+  "Jawaharlal Nehru University (JNU)",
+  "Amity University",
+  "Manipal Institute of Technology",
+  "Vellore Institute of Technology (VIT)",
+  "SRM Institute of Science and Technology",
+  "Anna University",
+  "Indian Institute of Science (IISc)",
+  "Indian Statistical Institute (ISI)",
+  "Indian Institute of Management (IIM)",
+  "Symbiosis International University",
+  "Christ University",
+  "Lovely Professional University",
+  "Chandigarh University",
+  "KIIT University",
+  "Bennett University",
+  "Ashoka University",
+  "Shiv Nadar University",
+  "THDC-IHET",
+  "Other"
+];
+
+// Common branch names
+const COMMON_BRANCHES = [
+  "Computer Science and Engineering (CSE)",
+  "Information Technology (IT)",
+  "Electronics and Communication Engineering (ECE)",
+  "Electrical Engineering (EE)",
+  "Mechanical Engineering (ME)",
+  "Civil Engineering (CE)",
+  "Chemical Engineering (CHE)",
+  "Aerospace Engineering",
+  "Biotechnology",
+  "Data Science",
+  "Artificial Intelligence",
+  "Cybersecurity",
+  "Software Engineering",
+  "Computer Engineering",
+  "Electronics Engineering",
+  "Instrumentation Engineering",
+  "Production Engineering",
+  "Industrial Engineering",
+  "Environmental Engineering",
+  "Petroleum Engineering",
+  "Mining Engineering",
+  "Metallurgical Engineering",
+  "Textile Engineering",
+  "Agricultural Engineering",
+  "Food Technology",
+  "Pharmaceutical Engineering",
+  "Other"
+];
+
 const RegisterForm = () => {
   const dispatch = useDispatch();
   const [register, { isLoading }] = useRegisterMutation();
@@ -54,8 +115,8 @@ const RegisterForm = () => {
     {
       label: "College",
       fields: [
-        { label: "College", name: "college", placeholder: "college", required: true },
-        { label: "ZIP Code", name: "zipCode", placeholder: "zip code", required: true },
+        { label: "College", name: "college", type: "collegeSelect", options: COMMON_COLLEGES, placeholder: "Type or select your college", required: true },
+        { label: "Branch Name", name: "branchName", type: "select", options: COMMON_BRANCHES, placeholder: "Select your branch", required: true },
         { label: "Degree", name: "degree", placeholder: "degree", required: true },
         { label: "Graduation Year", name: "yearOfGraduation", placeholder: "graduation year", required: true },
       ],
@@ -220,6 +281,53 @@ const handleChange = async (e) => {
                   )}
                   {field.description && <small>{field.description}</small>}
                 </>
+              );
+              break;
+            case "select":
+              inputElement = (
+                <select
+                  className={styles.input}
+                  name={field.name}
+                  id={field.name}
+                  required={field.required}
+                  onChange={handleChange}
+                  defaultValue={formValues[field.name] || ""}
+                >
+                  <option value="" disabled>
+                    {field.placeholder}
+                  </option>
+                  {field.options.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              );
+              break;
+            case "collegeSelect":
+              inputElement = (
+                <div className={styles.collegeSelectContainer}>
+                  <input
+                    className={styles.input}
+                    type="text"
+                    name={field.name}
+                    id={field.name}
+                    placeholder={field.placeholder}
+                    required={field.required}
+                    onChange={handleChange}
+                    defaultValue={formValues[field.name] || ""}
+                    list={`${field.name}-options`}
+                    autoComplete="off"
+                  />
+                  <datalist id={`${field.name}-options`}>
+                    {field.options.map((option) => (
+                      <option key={option} value={option} />
+                    ))}
+                  </datalist>
+                  <small className={styles.inputHint}>
+                    Type to search or select from the dropdown
+                  </small>
+                </div>
               );
               break;
             default:

@@ -21,6 +21,14 @@ const participantsApi = api.injectEndpoints({
       query: (eventId) => `/participants/event/${eventId}`,
       providesTags: ["Participants"],
     }),
+    updateParticipantAttendance: builder.mutation({
+      query: ({ participantId, attendance }) => ({
+        url: `/participants/${participantId}/attendance`,
+        method: "PATCH",
+        body: { attendance },
+      }),
+      invalidatesTags: ["Participants"],
+    }),
   }),
 });
 
@@ -28,4 +36,5 @@ export const {
   useCreateParticipantMutation,
   useGetParticipationsBySelfQuery,
   useGetParticipationsByEventIdQuery,
+  useUpdateParticipantAttendanceMutation,
 } = participantsApi;

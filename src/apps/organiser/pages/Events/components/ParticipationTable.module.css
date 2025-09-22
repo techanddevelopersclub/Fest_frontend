@@ -63,6 +63,137 @@
   background-color: #374151;
 }
 
+.downloadButton {
+  padding: 0.5rem 1rem;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+  height: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.downloadButton:hover:not(:disabled) {
+  background-color: #059669;
+}
+
+.downloadButton:active:not(:disabled) {
+  background-color: #047857;
+}
+
+.downloadButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Attendance Styles */
+.attendanceCell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.attendanceStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.attendanceText {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.attendanceText.present {
+  color: #059669;
+}
+
+.attendanceText.absent {
+  color: #dc2626;
+}
+
+.attendanceText.pending {
+  color: #d97706;
+}
+
+.presentIcon {
+  color: #059669;
+}
+
+.absentIcon {
+  color: #dc2626;
+}
+
+.pendingIcon {
+  color: #d97706;
+}
+
+.attendanceActions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.attendanceBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.attendanceBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.presentBtn:hover {
+  border-color: #059669;
+  background-color: #f0fdf4;
+}
+
+.absentBtn:hover {
+  border-color: #dc2626;
+  background-color: #fef2f2;
+}
+
+.pendingBtn:hover {
+  border-color: #d97706;
+  background-color: #fffbeb;
+}
+
+.attendanceBtn.active {
+  border-width: 2px;
+}
+
+.presentBtn.active {
+  border-color: #059669;
+  background-color: #059669;
+  color: white;
+}
+
+.absentBtn.active {
+  border-color: #dc2626;
+  background-color: #dc2626;
+  color: white;
+}
+
+.pendingBtn.active {
+  border-color: #d97706;
+  background-color: #d97706;
+  color: white;
+}
+
 @media (max-width: 768px) {
   .filters {
     flex-direction: column;
@@ -71,5 +202,9 @@
   
   .filterGroup {
     min-width: unset;
+  }
+  
+  .attendanceActions {
+    flex-wrap: wrap;
   }
 }

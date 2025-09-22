@@ -49,6 +49,12 @@ const Registration = ({ event = {}, close }) => {
       // For team events, initialize empty
       setMemberNamesInput("");
     }
+    
+    // Ensure team size is properly initialized
+    setParticipant(prev => ({
+      ...prev,
+      teamSize: prev.members.length
+    }));
   }, [event.minTeamSize, user?.name]);
   const [verificationStatus, setVerificationStatus] = useState(false);
   const [createPendingParticipant, { isLoading: isPendingLoading }] = useCreatePendingParticipantMutation();
@@ -79,7 +85,10 @@ const Registration = ({ event = {}, close }) => {
     setParticipant({
       ...participant,
       members: members,
-      teamSize: members.length,
+      // For team events, team size should be based on the number of names if available, otherwise members
+      teamSize: event.minTeamSize > 1 && participant.teamMemberNames.length > 0 
+        ? participant.teamMemberNames.length 
+        : members.length,
     });
   };
 
@@ -101,14 +110,16 @@ const Registration = ({ event = {}, close }) => {
     console.log("Team member names changed:", {
       input: e.target.value,
       processed: memberNames,
-      isTeam: event.minTeamSize > 1
+      isTeam: event.minTeamSize > 1,
+      teamSize: event.minTeamSize > 1 ? memberNames.length : participant.members.length
     });
     
     setMemberNamesInput(e.target.value);
     setParticipant({
       ...participant,
       teamMemberNames: memberNames,
-      teamSize: memberNames.length,
+      // For team events, team size should be based on the number of names entered
+      teamSize: event.minTeamSize > 1 ? memberNames.length : participant.members.length,
     });
   };
 
@@ -135,7 +146,8 @@ const Registration = ({ event = {}, close }) => {
       ...participant,
       members: members,
       teamMemberNames: memberNames,
-      teamSize: members.length,
+      // For team events, team size should be based on the number of names
+      teamSize: event.minTeamSize > 1 ? memberNames.length : members.length,
     });
   };
 
@@ -250,7 +262,28 @@ const handleSubmit = async (e) => {
 
   return (
     <>
-      <Modal title={event.name} close={close}>
+      <Modal 
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span>{event.name}</span>
+            {participant.teamSize > 0 && (
+              <span 
+                style={{
+                  background: 'var(--color-secondary-500)',
+                  color: 'white',
+                  padding: '0.25rem 0.5rem',
+                  borderRadius: '1rem',
+                  fontSize: '0.8rem',
+                  fontWeight: '500'
+                }}
+              >
+                {participant.teamSize} member{(participant.teamSize || 1) !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+        } 
+        close={close}
+      >
         <div className={styles.participantDetails}>
           <div className={styles.item}>
             <p className={styles.key}>
@@ -261,6 +294,18 @@ const handleSubmit = async (e) => {
           <div className={styles.item}>
             <p className={styles.key}>Contact Email</p>
             <p className={styles.value}>{user.email}</p>
+          </div>
+          {participant.teamName && (
+            <div className={styles.item}>
+              <p className={styles.key}>
+                {event.minTeamSize > 1 ? "Team Name" : "Participant Name"}
+              </p>
+              <p className={styles.value}>{participant.teamName}</p>
+            </div>
+          )}
+          <div className={styles.item}>
+            <p className={styles.key}>Team Size</p>
+            <p className={styles.value}>{participant.teamSize || 1} member{(participant.teamSize || 1) !== 1 ? 's' : ''}</p>
           </div>
         </div>
         <form className={styles.form} onSubmit={handleSubmit}>
@@ -324,6 +369,13 @@ const handleSubmit = async (e) => {
                 </div>
               ))}
             </div>
+            {participant.teamMemberNames.length > 0 && (
+              <div className={styles.teamInfo}>
+                <p className={styles.teamCount}>
+                  Total Team Members: <strong>{participant.teamMemberNames.length}</strong>
+                </p>
+              </div>
+            )}
           </div>
           {event.registrationFeesInINR > 0 && (
             <ApplyPromoCode

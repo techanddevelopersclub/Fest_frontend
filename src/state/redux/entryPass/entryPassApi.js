@@ -27,6 +27,10 @@ const entryPassApi = api.injectEndpoints({
       }),
       invalidatesTags: ["EntryPass"],
     }),
+    getEntryPassesByEvent: builder.query({
+      query: (eventId) => `/entry-passes/event/${eventId}`,
+      providesTags: ["EntryPass"],
+    }),
   }),
 });
 
@@ -35,4 +39,5 @@ export const {
   useGetEntryPassesBySelfQuery,
   usePurchaseEntryPassMutation,
   useCheckInEntryPassMutation,
+  useGetEntryPassesByEventQuery,
 } = entryPassApi;
