@@ -86,6 +86,7 @@ const Profile = () => {
               </>
             ) : (
               <>
+                <UserDetails />
                 {tabs[activeTabIndex].component}
                 <BottomNavigationBar
                   tabs={tabs}
