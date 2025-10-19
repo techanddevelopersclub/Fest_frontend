@@ -162,9 +162,20 @@ const NavbarLink = ({ link }) => {
     <RequireFeatureFlag name={link.featureFlag}>
       <li key={link.text} className={styles.navlink}>
         {isPortrait && <span className={styles.icon}>{link.icon}</span>}
-        <Link to={link.path} className={link.active ? styles.active : ""}>
-          {link.text}
-        </Link>
+        {link.external ? (
+          <a
+            href={link.path}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={link.active ? styles.active : ""}
+          >
+            {link.text}
+          </a>
+        ) : (
+          <Link to={link.path} className={link.active ? styles.active : ""}>
+            {link.text}
+          </Link>
+        )}
       </li>
     </RequireFeatureFlag>
   );

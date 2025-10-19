@@ -17,15 +17,29 @@ const Sidebar = () => {
           {links?.map((link) => (
             <React.Fragment key={link.text}>
               <li>
-                <Link
-                  to={link.path}
-                  className={
-                    styles.navlink + " " + (link.active ? styles.active : "")
-                  }
-                >
-                  <span className={styles.icon}>{link.icon}</span>
-                  <span>{link.text}</span>
-                </Link>
+                {link.external ? (
+                  <a
+                    href={link.path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={
+                      styles.navlink + " " + (link.active ? styles.active : "")
+                    }
+                  >
+                    <span className={styles.icon}>{link.icon}</span>
+                    <span>{link.text}</span>
+                  </a>
+                ) : (
+                  <Link
+                    to={link.path}
+                    className={
+                      styles.navlink + " " + (link.active ? styles.active : "")
+                    }
+                  >
+                    <span className={styles.icon}>{link.icon}</span>
+                    <span>{link.text}</span>
+                  </Link>
+                )}
               </li>
               {link.active && link.sublinks && (
                 <ul className={styles.sublinks}>

@@ -18,6 +18,12 @@ const AdminSidebarProvider = ({ children }) => {
   const location = useLocation();
   const [links, setLinks] = useState([
     {
+      text: "Home",
+      path: import.meta.env.VITE_FRONTEND_URL,
+      icon: <AiFillHome />,
+      external: true,
+    },
+    {
       text: "Dashboard",
       path: "/admin",
       icon: <AiFillHome />,

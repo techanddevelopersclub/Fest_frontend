@@ -14,8 +14,9 @@ export const ClientNavbarProvider = ({ children }) => {
   const [links, setLinks] = useState([
     {
       text: "Home",
-      path: "/",
+      path: import.meta.env.VITE_FRONTEND_URL,
       icon: <AiFillHome />,
+      external: true,
     },
     {
       text: "Events",
