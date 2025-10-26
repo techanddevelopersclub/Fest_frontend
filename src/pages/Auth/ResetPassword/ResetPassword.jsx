@@ -12,7 +12,7 @@ const ResetPassword = () => {
 
   useEffect(() => {
     if (isLoggedIn) {
-      navigate(location.state?.from ? location.state.from : "/event", {
+      navigate(location.state?.from ? location.state.from : "/events", {
         replace: true,
       });
     }
