@@ -18,7 +18,7 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/a/*" element={<AuthIndex />} />
       <Route path="/u/*" element={<UtilityIndex />} />
-      <Route path="/event/*" element={
+      <Route path="/events/*" element={
         <ThemeProvider defaultTheme="dark" storageKey="cieszyc-theme">
           <ClientIndex />
         </ThemeProvider>
