@@ -27,9 +27,10 @@ const AppRoutes = () => {
             <Route
         path="/*"
         element={
-          <ThemeProvider defaultTheme="dark" storageKey="cieszyc-theme">
-            <ClientIndex />
-          </ThemeProvider>
+          // <ThemeProvider defaultTheme="dark" storageKey="cieszyc-theme">
+          //   <ClientIndex />
+          // </ThemeProvider>
+          <Navigate to="/events" replace />
         }
       />
       <Route path="/admin/*" element={<RequireAdmin />}>
