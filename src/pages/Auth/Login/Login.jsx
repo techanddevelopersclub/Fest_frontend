@@ -12,7 +12,7 @@ const Login = () => {
 
   useEffect(() => {
     if (isLoggedIn) {
-      navigate(location.state?.from ? location.state.from : "/", {
+      navigate(location.state?.from ? location.state.from : "/events", {
         replace: true,
       });
     }
