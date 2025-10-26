@@ -18,12 +18,20 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/a/*" element={<AuthIndex />} />
       <Route path="/u/*" element={<UtilityIndex />} />
-      <Route path="/events/*" element={
+      {/* <Route path="/events/*" element={
         <ThemeProvider defaultTheme="dark" storageKey="cieszyc-theme">
-          <ClientIndex />
+          <ClientIndex/>
         </ThemeProvider>
-      } />
-      <Route path="/" element={<Navigate to="/a/login" replace />} />
+      }/>
+      <Route path="/" element={<Navigate to="/a/login" replace />} /> */}
+            <Route
+        path="/*"
+        element={
+          <ThemeProvider defaultTheme="dark" storageKey="cieszyc-theme">
+            <ClientIndex />
+          </ThemeProvider>
+        }
+      />
       <Route path="/admin/*" element={<RequireAdmin />}>
         <Route
           path="*"
