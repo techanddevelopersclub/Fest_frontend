@@ -12,7 +12,7 @@ const Register = () => {
 
   useEffect(() => {
     if (isLoggedIn) {
-      navigate(location.state?.from ? location.state.from : "/events", {
+      navigate(location.state?.from ? location.state.from : "/event", {
         replace: true,
       });
     }
