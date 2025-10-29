@@ -24,16 +24,16 @@ const AppRoutes = () => {
         </ThemeProvider>
       }/>
       <Route path="/" element={<Navigate to="/a/login" replace />} /> */}
-            <Route
-        path="/*"
+      <Route  path="/"  element={<Navigate to="/events" replace />}    />
+      <Route
+        path="/events/*"
         element={
-          // <ThemeProvider defaultTheme="dark" storageKey="cieszyc-theme">
-          //   <ClientIndex />
-          // </ThemeProvider>
-          <Navigate to="/a/login" replace />
+          <ThemeProvider defaultTheme="dark" storageKey="cieszyc-theme">
+            <ClientIndex />
+          </ThemeProvider>
         }
       />
-      <Route path="/admin/*" element={<RequireAdmin />}>``
+      <Route path="/admin/*" element={<RequireAdmin />}>
         <Route
           path="*"
           element={
