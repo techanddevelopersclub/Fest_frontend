@@ -27,9 +27,7 @@ const AppRoutes = () => {
       <Route  path="/"  element={<Navigate to="/events" replace />}    />
       <Route
         path="/events/*"
-        element={
-         <UtilityIndex />
-        }
+
       />
       <Route path="/admin/*" element={<RequireAdmin />}>
         <Route
