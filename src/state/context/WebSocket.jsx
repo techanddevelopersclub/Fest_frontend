@@ -34,9 +34,16 @@ const WebSocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (!token) return;
+    // In Vercel serverless, native WebSocket backends are not supported.
+    // Only attempt connection if a socket URL is explicitly provided.
     if (webSocket.current) webSocket.current.close();
     console.log("Connecting to socket...");
-    webSocket.current = new WebSocket(import.meta.env.VITE_API_SOCKET_URL);
+    const socketUrl = import.meta.env.VITE_API_SOCKET_URL;
+    if (!socketUrl) {
+      console.log("Skipping WebSocket connect: VITE_API_SOCKET_URL not set.");
+      return;
+    }
+    webSocket.current = new WebSocket(socketUrl);
     webSocket.current.onopen = () => {
       console.log("Connected to socket.");
       webSocket.current.send(JSON.stringify(["auth:connect", { token }]));
