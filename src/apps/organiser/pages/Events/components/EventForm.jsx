@@ -62,7 +62,11 @@ const EventForm = ({ onSubmit, defaultValue, onChange }) => {
     if (!canSubmit) return;
     
     // Convert all datetime fields from local timezone to UTC before submission
+    // Note: timezone is only used for frontend conversion, NOT sent to backend
     const eventToSubmit = { ...event };
+    
+    // Ensure timezone is not included in the event object (frontend only)
+    delete eventToSubmit.timezone;
     
     // List of datetime fields that need conversion
     const datetimeFields = [
@@ -74,7 +78,7 @@ const EventForm = ({ onSubmit, defaultValue, onChange }) => {
       "entryPassDistributionEnd",
     ];
     
-    // Convert each datetime field
+    // Convert each datetime field from selected timezone to UTC
     datetimeFields.forEach((field) => {
       if (eventToSubmit[field]) {
         eventToSubmit[field] = convertLocalDateTimeToUTC(
