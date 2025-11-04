@@ -14,9 +14,9 @@ const OrganiserSidebarProvider = ({ children }) => {
   const [links, setLinks] = useState([
     {
       text: "Home",
-      path: "/",
+      path: import.meta.env.VITE_FRONTEND_URL,
       icon: <AiFillHome />,
-      external: false,
+      external: true,
     },
     {
       text: "Dashboard",

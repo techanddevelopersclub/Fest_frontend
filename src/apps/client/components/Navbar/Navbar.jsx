@@ -165,8 +165,6 @@ const NavbarLink = ({ link }) => {
         {link.external ? (
           <a
             href={link.path}
-            target="_blank"
-            rel="noopener noreferrer"
             className={link.active ? styles.active : ""}
           >
             {link.text}

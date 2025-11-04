@@ -20,8 +20,6 @@ const Sidebar = () => {
                 {link.external ? (
                   <a
                     href={link.path}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className={
                       styles.navlink + " " + (link.active ? styles.active : "")
                     }
