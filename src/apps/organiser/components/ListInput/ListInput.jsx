@@ -31,7 +31,8 @@ const ListInput = ({
         },
       ]);
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultValue]);
 
   const validate = () => {
     let isValid = true;

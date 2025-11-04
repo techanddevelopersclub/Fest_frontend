@@ -253,6 +253,7 @@ const EventForm = ({ onSubmit, defaultValue, onChange }) => {
         </GridItem>
         <GridItem sm={12} md={12} lg={12}>
           <ListInput
+            key={`timeline-${timezone}`}
             label="Timeline"
             name="timeline"
             validations={{ required: true }}
