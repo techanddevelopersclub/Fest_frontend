@@ -6,11 +6,13 @@ import ListInput from "../../../components/ListInput/ListInput";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../../../../state/redux/auth/authSlice";
 import ImagePreview from "./ImagePreview/ImagePreview";
+import { convertLocalDateTimeToUTC, COMMON_TIMEZONES } from "../../../../../utils/time";
 
 const EventForm = ({ onSubmit, defaultValue, onChange }) => {
   const user = useSelector(selectUser);
   const organisationId = user.organisation;
   const [canSubmit, setCanSubmit] = useState(false);
+  const [timezone, setTimezone] = useState("Asia/Kolkata"); // Default to IST
 
   const [event, setEvent] = useState({
     name: "",
@@ -57,8 +59,41 @@ const EventForm = ({ onSubmit, defaultValue, onChange }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(event);
-    if (canSubmit) onSubmit(event);
+    if (!canSubmit) return;
+    
+    // Convert all datetime fields from local timezone to UTC before submission
+    const eventToSubmit = { ...event };
+    
+    // List of datetime fields that need conversion
+    const datetimeFields = [
+      "startTime",
+      "endTime",
+      "registrationsStart",
+      "registrationsEnd",
+      "entryPassDistributionStart",
+      "entryPassDistributionEnd",
+    ];
+    
+    // Convert each datetime field
+    datetimeFields.forEach((field) => {
+      if (eventToSubmit[field]) {
+        eventToSubmit[field] = convertLocalDateTimeToUTC(
+          eventToSubmit[field],
+          timezone
+        );
+      }
+    });
+    
+    // Convert timeline datetime fields
+    if (eventToSubmit.timeline && Array.isArray(eventToSubmit.timeline)) {
+      eventToSubmit.timeline = eventToSubmit.timeline.map((item) => ({
+        ...item,
+        time: item.time ? convertLocalDateTimeToUTC(item.time, timezone) : item.time,
+      }));
+    }
+    
+    console.log("Submitting event with UTC times:", eventToSubmit);
+    onSubmit(eventToSubmit);
   };
 
   return (
@@ -180,8 +215,22 @@ const EventForm = ({ onSubmit, defaultValue, onChange }) => {
           />
         </GridItem>
         <GridItem sm={12} md={6} lg={4}>
+          <Input.Dropdown
+            label="Timezone"
+            entries={COMMON_TIMEZONES.map((tz) => tz.label)}
+            validations={{ required: true }}
+            onValidation={handleCanSubmit}
+            onChange={(value) => {
+              const selectedTimezone = COMMON_TIMEZONES.find((tz) => tz.label === value)?.value || "Asia/Kolkata";
+              setTimezone(selectedTimezone);
+            }}
+            defaultValue={COMMON_TIMEZONES.find((tz) => tz.value === timezone)?.label || COMMON_TIMEZONES[0].label}
+          />
+        </GridItem>
+        <GridItem sm={12} md={6} lg={4}>
           <Input.DateTime
             label="Start Time"
+            timezone={timezone}
             validations={{ required: true }}
             onValidation={handleCanSubmit}
             onChange={(value) => handleChange("startTime", value)}
@@ -191,6 +240,7 @@ const EventForm = ({ onSubmit, defaultValue, onChange }) => {
         <GridItem sm={12} md={6} lg={4}>
           <Input.DateTime
             label="End Time"
+            timezone={timezone}
             validations={{ required: true }}
             onValidation={handleCanSubmit}
             onChange={(value) => handleChange("endTime", value)}
@@ -209,6 +259,7 @@ const EventForm = ({ onSubmit, defaultValue, onChange }) => {
             <Input.DateTime
               label="Date Time"
               name="time"
+              timezone={timezone}
               validations={{ required: true }}
             />
             <Input.Text
@@ -237,6 +288,7 @@ const EventForm = ({ onSubmit, defaultValue, onChange }) => {
         <GridItem sm={12} md={4} lg={4}>
           <Input.DateTime
             label="Registrations Start Time"
+            timezone={timezone}
             validations={{ required: event.isRegistrationRequired }}
             onValidation={handleCanSubmit}
             onChange={(value) => handleChange("registrationsStart", value)}
@@ -246,6 +298,7 @@ const EventForm = ({ onSubmit, defaultValue, onChange }) => {
         <GridItem sm={12} md={4} lg={4}>
           <Input.DateTime
             label="Registrations End Time"
+            timezone={timezone}
             validations={{ required: event.isRegistrationRequired }}
             onValidation={handleCanSubmit}
             onChange={(value) => handleChange("registrationsEnd", value)}
@@ -296,6 +349,7 @@ const EventForm = ({ onSubmit, defaultValue, onChange }) => {
         <GridItem sm={12} md={4} lg={4}>
           <Input.DateTime
             label="Entry Pass Distribution Start"
+            timezone={timezone}
             validations={{ required: event.isEntryPassRequired }}
             onValidation={handleCanSubmit}
             onChange={(value) =>
@@ -307,6 +361,7 @@ const EventForm = ({ onSubmit, defaultValue, onChange }) => {
         <GridItem sm={12} md={4} lg={4}>
           <Input.DateTime
             label="Entry Pass Distribution End"
+            timezone={timezone}
             validations={{ required: event.isEntryPassRequired }}
             onValidation={handleCanSubmit}
             onChange={(value) =>

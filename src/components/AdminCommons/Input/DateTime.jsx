@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "./Input.module.css";
 import { Input } from "../ui/input";
+import { convertUTCToLocalDateTime } from "../../../utils/time";
 
 const DateTime = ({
   label,
@@ -10,17 +11,44 @@ const DateTime = ({
   onChange,
   defaultValue,
   readOnly,
+  timezone = "Asia/Kolkata", // Default to IST
 }) => {
   const [error, setError] = useState("");
-  // add 5:30 to the time
-  if (defaultValue) {
-    defaultValue = new Date(
-      new Date(defaultValue).getTime() + 5.5 * 60 * 60 * 1000
-    )
-      .toISOString()
-      .slice(0, -8);
-  }
-  const [datetime, setDateTime] = useState(defaultValue || "");
+  
+  // Convert UTC defaultValue to local datetime in the specified timezone
+  const getLocalDateTime = (utcValue) => {
+    if (!utcValue) return "";
+    try {
+      // If it's already a datetime-local string, return as is
+      if (typeof utcValue === "string" && utcValue.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)) {
+        return utcValue;
+      }
+      // Otherwise, convert from UTC ISO string to local datetime
+      return convertUTCToLocalDateTime(utcValue, timezone);
+    } catch (error) {
+      console.error("Error converting UTC to local datetime:", error);
+      return "";
+    }
+  };
+  
+  const [datetime, setDateTime] = useState(() => {
+    if (defaultValue) {
+      return getLocalDateTime(defaultValue);
+    }
+    return "";
+  });
+
+  // Update when defaultValue or timezone changes
+  useEffect(() => {
+    if (defaultValue) {
+      const localValue = getLocalDateTime(defaultValue);
+      setDateTime(localValue);
+    } else if (!defaultValue && datetime) {
+      // Clear datetime if defaultValue is cleared
+      setDateTime("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultValue, timezone]);
 
   const validate = () => {
     let isValid = true;
@@ -39,7 +67,7 @@ const DateTime = ({
       <Input
         type="datetime-local"
         name={name}
-        defaultValue={defaultValue}
+        value={datetime}
         onChange={(e) => {
           setDateTime(e.target.value);
           if (onChange) onChange(e.target.value);
