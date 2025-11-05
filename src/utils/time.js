@@ -110,20 +110,14 @@ export const formatDateTimeFromNow = (
  */
 export const convertLocalDateTimeToUTC = (localDateTime, timezone = "Asia/Kolkata") => {
   if (!localDateTime) return "";
-  
+
   try {
-    // Parse the local datetime string
+    // Parse the local datetime string (YYYY-MM-DDTHH:mm)
     const [datePart, timePart] = localDateTime.split("T");
     const [year, month, day] = datePart.split("-").map(Number);
     const [hour, minute] = timePart.split(":").map(Number);
-    
-    // Strategy: Find what UTC time would display as our target time in the timezone
-    // Then work backwards to find the correct UTC time
-    
-    // Create a test UTC date
-    let testUTC = new Date(Date.UTC(year, month - 1, day, hour, minute, 0));
-    
-    // Format this UTC time in the target timezone
+
+    // Helper: format a UTC timestamp in the given timezone and extract parts
     const formatter = new Intl.DateTimeFormat("en-US", {
       timeZone: timezone,
       year: "numeric",
@@ -133,45 +127,38 @@ export const convertLocalDateTimeToUTC = (localDateTime, timezone = "Asia/Kolkat
       minute: "2-digit",
       hour12: false,
     });
-    
-    // Binary search approach: adjust UTC until the formatted timezone time matches our input
-    let attempts = 0;
-    const maxAttempts = 100;
-    
-    while (attempts < maxAttempts) {
-      const parts = formatter.formatToParts(testUTC);
-      const tzYear = parseInt(parts.find(p => p.type === "year").value);
-      const tzMonth = parseInt(parts.find(p => p.type === "month").value);
-      const tzDay = parseInt(parts.find(p => p.type === "day").value);
-      const tzHour = parseInt(parts.find(p => p.type === "hour").value);
-      const tzMinute = parseInt(parts.find(p => p.type === "minute").value);
-      
-      // Check if we match
-      if (tzYear === year && tzMonth === month && tzDay === day && tzHour === hour && tzMinute === minute) {
-        return testUTC.toISOString();
-      }
-      
-      // Calculate difference in minutes
-      const targetMinutes = hour * 60 + minute;
-      const tzMinutes = tzHour * 60 + tzMinute;
-      let diffMinutes = targetMinutes - tzMinutes;
-      
-      // Handle day differences
-      if (tzDay !== day) {
-        diffMinutes += (day - tzDay) * 24 * 60;
-      }
-      
-      // Adjust the UTC time
-      testUTC = new Date(testUTC.getTime() + diffMinutes * 60 * 1000);
-      attempts++;
+
+    const toTzParts = (ms) => {
+      const parts = formatter.formatToParts(new Date(ms));
+      return {
+        y: parseInt(parts.find((p) => p.type === "year").value),
+        m: parseInt(parts.find((p) => p.type === "month").value),
+        d: parseInt(parts.find((p) => p.type === "day").value),
+        h: parseInt(parts.find((p) => p.type === "hour").value),
+        min: parseInt(parts.find((p) => p.type === "minute").value),
+      };
+    };
+
+    // Start from the UTC time that has the same numeric components
+    let utcMs = Date.UTC(year, month - 1, day, hour, minute, 0, 0);
+
+    // Do two correction passes to account for DST/offset differences
+    for (let i = 0; i < 2; i++) {
+      const tz = toTzParts(utcMs);
+
+      // Compute difference in minutes between desired tz wall-time and current formatted tz time
+      let desiredTotal = (((year * 12 + month) * 31 + day) * 24 + hour) * 60 + minute;
+      let currentTotal = (((tz.y * 12 + tz.m) * 31 + tz.d) * 24 + tz.h) * 60 + tz.min;
+      const diffMinutes = desiredTotal - currentTotal;
+
+      if (diffMinutes === 0) break;
+      utcMs += diffMinutes * 60 * 1000;
     }
-    
-    // If binary search didn't work, return the best guess
-    return testUTC.toISOString();
+
+    return new Date(utcMs).toISOString();
   } catch (error) {
     console.error("Error converting local datetime to UTC:", error);
-    // Fallback: return as-is (assume already UTC for backward compatibility)
-    return new Date(localDateTime).toISOString();
+    return "";
   }
 };
 
