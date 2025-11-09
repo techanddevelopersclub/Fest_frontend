@@ -5,7 +5,7 @@ import { selectIsAdmin, selectIsPaymentVerifier } from "../redux/auth/authSlice"
 import { AiFillHome } from "react-icons/ai";
 import { RiOrganizationChart } from "react-icons/ri";
 import { FaUsers, FaRegHandshake } from "react-icons/fa";
-import { MdKey, MdLocationPin } from "react-icons/md";
+import { MdKey, MdLocationPin, MdHotelClass } from "react-icons/md";
 import { ImLab } from "react-icons/im";
 import { PiFlagBannerFill } from "react-icons/pi";
 import { BsFillGiftFill } from "react-icons/bs";
@@ -120,6 +120,13 @@ const ALL_LINKS = [
     path: "/admin/notifications",
     icon: <IoMdNotifications />,
     roles: ["admin"], // Only admins
+  },
+  {
+    text: "Events",
+    path: "/events",
+    icon: <MdHotelClass />,
+    roles: ["admin", "paymentVerifier"], // Both admins and payment verifiers
+    featureFlag: "EVENTS_PAGE",
   },
   {
     text: "Payment Verification",
