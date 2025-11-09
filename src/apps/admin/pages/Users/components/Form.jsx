@@ -71,7 +71,7 @@ const Form = ({ onSubmit, defaultValue, onChange, mode = "create" }) => {
         <GridItem sm={12} md={6} lg={4}>
           <Input.Dropdown
             label="Role"
-            entries={["user", "organiser", "admin"]}
+            entries={["user", "organiser", "admin", "paymentVerifier"]}
             validations={{ required: true }}
             onValidation={handleCanSubmit}
             onChange={(value) => handleChange("role", value)}
