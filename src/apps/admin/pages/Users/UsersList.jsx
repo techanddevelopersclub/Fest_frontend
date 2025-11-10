@@ -77,13 +77,18 @@ const UsersList = () => {
           title="Users List"
           data={users}
           actions={{
-            delete: (id) => {
+            delete: async (id) => {
+              const user = users.find((user) => user._id === id);
               const confirm = window.confirm(
-                "Are you sure you want to delete the user: " +
-                  users.find((user) => user._id === id).name
+                "Are you sure you want to delete the user: " + user.name
               );
               if (!confirm) return;
-              deleteUser(id);
+              try {
+                await deleteUser({ userId: id }).unwrap();
+              } catch (error) {
+                console.error("Failed to delete user:", error);
+                alert("Failed to delete user. Please try again.");
+              }
             },
             edit: (id) => {
               navigate(`/admin/users/edit/${id}`);
