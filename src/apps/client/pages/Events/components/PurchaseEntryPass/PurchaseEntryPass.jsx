@@ -15,6 +15,8 @@ const PurchaseEntryPass = ({ event = {}, close }) => {
   const user = useSelector(selectUser);
   const [error, setError] = useState(null);
   const [promoCode, setPromoCode] = useState("");
+  const [appliedPromotion, setAppliedPromotion] = useState(null);
+  const [discountedTotal, setDiscountedTotal] = useState(event.entryPassPriceInINR || 0);
   const [purchaseEntryPass, { isLoading }] = usePurchaseEntryPassMutation();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [uploadedFileUrl, setUploadedFileUrl] = useState("");
@@ -105,7 +107,8 @@ const handleSubmit = (e) => {
     const accountNumber = import.meta.env.VITE_UPI_ACCOUNT_NUMBER || event.upiAccountNumber || "demoaccount";
     const ifsc = import.meta.env.VITE_UPI_IFSC || event.upiIfsc || "demoifsc";
     const name = import.meta.env.VITE_UPI_NAME ||  "CIESYZC";
-    const amount = event.entryPassPriceInINR || 1;
+    // Use discounted total if a promotion is applied
+    const amount = (discountedTotal > 0 ? discountedTotal : event.entryPassPriceInINR) || 1;
     return `upi://pay?pa=${accountNumber}@${ifsc}.ifsc.npci&pn=${name}&am=${amount}&cu=INR`;
   };
 
@@ -142,6 +145,8 @@ const handleSubmit = (e) => {
         event: event._id,
         user: user._id,
         paymentProofUrl: uploadedFileUrl,
+        promoCode: promoCode || undefined,
+        discountedAmountInINR: discountedTotal,
       }).unwrap();
       
       toast.success("Submitted for verification");
@@ -158,6 +163,27 @@ const handleSubmit = (e) => {
 
   const handleApplyPromoCode = (promotion) => {
     setPromoCode(promotion?.promoCode || "");
+    setAppliedPromotion(promotion || null);
+
+    // compute discounted total similar to ApplyPromoCode component
+    if (promotion) {
+      if (promotion.discountType === "percentage") {
+        const discountValue = Math.min(
+          (promotion.discountValue * (event.entryPassPriceInINR || 0)) / 100,
+          event.entryPassPriceInINR || 0
+        );
+        setDiscountedTotal((event.entryPassPriceInINR || 0) - discountValue);
+      } else {
+        const discountValue = Math.min(
+          promotion.discountValue,
+          event.entryPassPriceInINR || 0,
+          promotion.maxDiscountInINR || promotion.discountValue
+        );
+        setDiscountedTotal((event.entryPassPriceInINR || 0) - discountValue);
+      }
+    } else {
+      setDiscountedTotal(event.entryPassPriceInINR || 0);
+    }
   };
 
   if (!event || !user) {
