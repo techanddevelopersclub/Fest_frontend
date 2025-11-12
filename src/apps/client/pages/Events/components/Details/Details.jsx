@@ -211,7 +211,7 @@ const Details = () => {
             {event?.isEntryPassRequired && (
               <PurchaseEntryPassButton onClick={openPurchaseEntryPassModal} />
             )}
-            {event?.rulebook && (
+            {event?.rulebookUrl && (
               <Button variant="link" onClick={handleNavigateToRulebook}>
                 Rulebook
               </Button>
