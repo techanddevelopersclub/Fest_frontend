@@ -250,28 +250,92 @@ const handleSubmit = (e) => {
       {showPaymentModal && (
         <Modal title="Complete Payment" close={() => setShowPaymentModal(false)}>
           <div style={{ textAlign: "center" }}>
-            <p style={{ marginBottom: 20, fontWeight: "bold" }}>Send payment to the following account:</p>
+            <p style={{ marginBottom: 20, fontWeight: "bold", fontSize: "18px", color: "#333" }}>Send payment to the following account:</p>
             <div style={{ 
-              backgroundColor: "#f5f5f5", 
+              backgroundColor: "#e8f4f8", 
               padding: "20px", 
-              borderRadius: "8px", 
+              borderRadius: "12px", 
               marginBottom: 20,
-              textAlign: "left"
+              textAlign: "left",
+              border: "2px solid #4a90e2"
             }}>
-              <div style={{ marginBottom: 15 }}>
-                <p style={{ margin: "0 0 5px 0", fontWeight: "bold", color: "#666" }}>Account Number:</p>
-                <p style={{ margin: 0, fontSize: "16px", fontFamily: "monospace" }}>{import.meta.env.VITE_UPI_ACCOUNT_NUMBER || event.upiAccountNumber || "N/A"}</p>
+              <div style={{ marginBottom: 18, display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 12, borderBottom: "1px solid #b3d9e8" }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: "0 0 8px 0", fontWeight: "bold", color: "#2c5aa0", fontSize: "13px" }}>Account Number</p>
+                  <p style={{ margin: 0, fontSize: "18px", fontFamily: "monospace", color: "#0066cc", fontWeight: "600" }}>{import.meta.env.VITE_UPI_ACCOUNT_NUMBER || event.upiAccountNumber || "N/A"}</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(import.meta.env.VITE_UPI_ACCOUNT_NUMBER || event.upiAccountNumber || "");
+                    toast.success("Account number copied!");
+                  }}
+                  style={{
+                    padding: "8px 12px",
+                    backgroundColor: "#4a90e2",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    marginLeft: 10
+                  }}
+                >
+                  Copy
+                </button>
               </div>
-              <div style={{ marginBottom: 15 }}>
-                <p style={{ margin: "0 0 5px 0", fontWeight: "bold", color: "#666" }}>IFSC Code:</p>
-                <p style={{ margin: 0, fontSize: "16px", fontFamily: "monospace" }}>{import.meta.env.VITE_UPI_IFSC || event.upiIfsc || "N/A"}</p>
+              <div style={{ marginBottom: 18, display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 12, borderBottom: "1px solid #b3d9e8" }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: "0 0 8px 0", fontWeight: "bold", color: "#2c5aa0", fontSize: "13px" }}>IFSC Code</p>
+                  <p style={{ margin: 0, fontSize: "18px", fontFamily: "monospace", color: "#0066cc", fontWeight: "600" }}>{import.meta.env.VITE_UPI_IFSC || event.upiIfsc || "N/A"}</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(import.meta.env.VITE_UPI_IFSC || event.upiIfsc || "");
+                    toast.success("IFSC code copied!");
+                  }}
+                  style={{
+                    padding: "8px 12px",
+                    backgroundColor: "#4a90e2",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    marginLeft: 10
+                  }}
+                >
+                  Copy
+                </button>
               </div>
-              <div>
-                <p style={{ margin: "0 0 5px 0", fontWeight: "bold", color: "#666" }}>Account Holder Name:</p>
-                <p style={{ margin: 0, fontSize: "16px", fontFamily: "monospace" }}>{import.meta.env.VITE_UPI_NAME || "N/A"}</p>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: "0 0 8px 0", fontWeight: "bold", color: "#2c5aa0", fontSize: "13px" }}>Account Holder Name</p>
+                  <p style={{ margin: 0, fontSize: "18px", fontFamily: "monospace", color: "#0066cc", fontWeight: "600" }}>{import.meta.env.VITE_UPI_NAME || "N/A"}</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(import.meta.env.VITE_UPI_NAME || "");
+                    toast.success("Account holder name copied!");
+                  }}
+                  style={{
+                    padding: "8px 12px",
+                    backgroundColor: "#4a90e2",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    marginLeft: 10
+                  }}
+                >
+                  Copy
+                </button>
               </div>
             </div>
-            <p style={{ marginBottom: 10, color: "#666" }}>Amount to pay: <b>₹{discountedTotal}</b></p>
+            <p style={{ marginBottom: 10, color: "#333", fontSize: "16px" }}>Amount to pay: <span style={{ fontSize: "22px", color: "#27ae60", fontWeight: "bold" }}>₹{discountedTotal}</span></p>
             <div style={{ marginTop: 20 }}>
               <label>Upload payment proof (screenshot/pdf):</label>
               <input type="file" accept="image/*,application/pdf" onChange={handleFileUpload} style={{ marginTop: 10 }} disabled={pendingVerification} />
