@@ -250,10 +250,28 @@ const handleSubmit = (e) => {
       {showPaymentModal && (
         <Modal title="Complete Payment" close={() => setShowPaymentModal(false)}>
           <div style={{ textAlign: "center" }}>
-            <p>Scan this QR to pay via UPI:</p>
-            <QRCode data={getUpiLink()} height={220} width={220} />
-            <p style={{ marginTop: 10 }}>Or use this link:</p>
-            <a href={getUpiLink()} target="_blank" rel="noopener noreferrer" style={{ color: "violet" }}>Pay Now</a>
+            <p style={{ marginBottom: 20, fontWeight: "bold" }}>Send payment to the following account:</p>
+            <div style={{ 
+              backgroundColor: "#f5f5f5", 
+              padding: "20px", 
+              borderRadius: "8px", 
+              marginBottom: 20,
+              textAlign: "left"
+            }}>
+              <div style={{ marginBottom: 15 }}>
+                <p style={{ margin: "0 0 5px 0", fontWeight: "bold", color: "#666" }}>Account Number:</p>
+                <p style={{ margin: 0, fontSize: "16px", fontFamily: "monospace" }}>{import.meta.env.VITE_UPI_ACCOUNT_NUMBER || event.upiAccountNumber || "N/A"}</p>
+              </div>
+              <div style={{ marginBottom: 15 }}>
+                <p style={{ margin: "0 0 5px 0", fontWeight: "bold", color: "#666" }}>IFSC Code:</p>
+                <p style={{ margin: 0, fontSize: "16px", fontFamily: "monospace" }}>{import.meta.env.VITE_UPI_IFSC || event.upiIfsc || "N/A"}</p>
+              </div>
+              <div>
+                <p style={{ margin: "0 0 5px 0", fontWeight: "bold", color: "#666" }}>Account Holder Name:</p>
+                <p style={{ margin: 0, fontSize: "16px", fontFamily: "monospace" }}>{import.meta.env.VITE_UPI_NAME || "N/A"}</p>
+              </div>
+            </div>
+            <p style={{ marginBottom: 10, color: "#666" }}>Amount to pay: <b>₹{discountedTotal}</b></p>
             <div style={{ marginTop: 20 }}>
               <label>Upload payment proof (screenshot/pdf):</label>
               <input type="file" accept="image/*,application/pdf" onChange={handleFileUpload} style={{ marginTop: 10 }} disabled={pendingVerification} />
