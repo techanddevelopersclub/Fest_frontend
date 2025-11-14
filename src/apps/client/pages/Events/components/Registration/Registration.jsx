@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import QRCode from "../../../../components/QRCode/QRCode";
 import styles from "./Registration.module.css";
 import { useCreateParticipantMutation } from "../../../../../../state/redux/participants/participantsApi";
 import { useCreatePendingParticipantMutation, useListPendingParticipantsQuery } from "../../../../../../state/redux/pendingParticipants/pendingParticipantsApi";
@@ -24,8 +23,10 @@ const Registration = ({ event = {}, close }) => {
   const [error, setError] = useState(null);
   const [membersInput, setMembersInput] = useState("");
   const [memberNamesInput, setMemberNamesInput] = useState("");
-  const [createParticipant, { isLoading }] = useCreateParticipantMutation();
   const [promoCode, setPromoCode] = useState("");
+  const [appliedPromotion, setAppliedPromotion] = useState(null);
+  const [discountedTotal, setDiscountedTotal] = useState(event.registrationFeesInINR || 0);
+  const [createParticipant, { isLoading }] = useCreateParticipantMutation();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [uploadedFileUrl, setUploadedFileUrl] = useState("");
   const [pendingVerification, setPendingVerification] = useState(false);
@@ -192,7 +193,7 @@ const handleSubmit = async (e) => {
     const accountNumber = import.meta.env.VITE_UPI_ACCOUNT_NUMBER || event.upiAccountNumber || "demoaccount";
     const ifsc = import.meta.env.VITE_UPI_IFSC || event.upiIfsc || "demoifsc";
     const name = import.meta.env.VITE_UPI_NAME ||  "CIESYZC";
-    const amount = event.registrationFeesInINR || 1;
+    const amount = (discountedTotal > 0 ? discountedTotal : event.registrationFeesInINR) || 1;
     return `upi://pay?pa=${accountNumber}@${ifsc}.ifsc.npci&pn=${name}&am=${amount}&cu=INR`;
   };
 
@@ -233,10 +234,12 @@ const handleSubmit = async (e) => {
         teamMemberNames: participant.teamMemberNames,
         teamSize: participant.teamSize,
         paymentProofUrl: uploadedFileUrl,
+        promoCode: promoCode || undefined,
+        discountedAmountInINR: discountedTotal,
       };
-      
+
       console.log("Sending pending participant data:", pendingData);
-      
+
       await createPendingParticipant(pendingData).unwrap();
       toast.success("Submitted for verification");
       setShowPaymentModal(false);
@@ -249,6 +252,26 @@ const handleSubmit = async (e) => {
 
   const handleApplyPromoCode = (promotion) => {
     setPromoCode(promotion?.promoCode || "");
+    setAppliedPromotion(promotion || null);
+
+    if (promotion) {
+      if (promotion.discountType === "percentage") {
+        const discountValue = Math.min(
+          (promotion.discountValue * (event.registrationFeesInINR || 0)) / 100,
+          event.registrationFeesInINR || 0
+        );
+        setDiscountedTotal((event.registrationFeesInINR || 0) - discountValue);
+      } else {
+        const discountValue = Math.min(
+          promotion.discountValue,
+          event.registrationFeesInINR || 0,
+          promotion.maxDiscountInINR || promotion.discountValue
+        );
+        setDiscountedTotal((event.registrationFeesInINR || 0) - discountValue);
+      }
+    } else {
+      setDiscountedTotal(event.registrationFeesInINR || 0);
+    }
   };
 
   if (!event || !user) {
@@ -412,16 +435,98 @@ const handleSubmit = async (e) => {
       {showPaymentModal && (
         <Modal title="Complete Payment" close={() => setShowPaymentModal(false)}>
           <div style={{ textAlign: "center" }}>
-            <p>Scan this QR to pay via UPI:</p>
-            <QRCode data={getUpiLink()} height={220} width={220} />
-            <p style={{ marginTop: 10 }}>Or use this link:</p>
-            <a href={getUpiLink()} target="_blank" rel="noopener noreferrer" style={{ color: "violet" }}>Pay Here</a>
+            <p style={{ marginBottom: 20, fontWeight: "bold", fontSize: "18px", color: "#333" }}>Send payment to the following account:</p>
+            <div style={{ 
+              backgroundColor: "#e8f4f8", 
+              padding: "20px", 
+              borderRadius: "12px", 
+              marginBottom: 20,
+              textAlign: "left",
+              border: "2px solid #4a90e2"
+            }}>
+              <div style={{ marginBottom: 18, display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 12, borderBottom: "1px solid #b3d9e8" }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: "0 0 8px 0", fontWeight: "bold", color: "#2c5aa0", fontSize: "13px" }}>Account Number</p>
+                  <p style={{ margin: 0, fontSize: "18px", fontFamily: "monospace", color: "#0066cc", fontWeight: "600" }}>{import.meta.env.VITE_UPI_ACCOUNT_NUMBER || event.upiAccountNumber || "N/A"}</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(import.meta.env.VITE_UPI_ACCOUNT_NUMBER || event.upiAccountNumber || "");
+                    toast.success("Account number copied!");
+                  }}
+                  style={{
+                    padding: "8px 12px",
+                    backgroundColor: "#4a90e2",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    marginLeft: 10
+                  }}
+                >
+                  Copy
+                </button>
+              </div>
+              <div style={{ marginBottom: 18, display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 12, borderBottom: "1px solid #b3d9e8" }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: "0 0 8px 0", fontWeight: "bold", color: "#2c5aa0", fontSize: "13px" }}>IFSC Code</p>
+                  <p style={{ margin: 0, fontSize: "18px", fontFamily: "monospace", color: "#0066cc", fontWeight: "600" }}>{import.meta.env.VITE_UPI_IFSC || event.upiIfsc || "N/A"}</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(import.meta.env.VITE_UPI_IFSC || event.upiIfsc || "");
+                    toast.success("IFSC code copied!");
+                  }}
+                  style={{
+                    padding: "8px 12px",
+                    backgroundColor: "#4a90e2",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    marginLeft: 10
+                  }}
+                >
+                  Copy
+                </button>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: "0 0 8px 0", fontWeight: "bold", color: "#2c5aa0", fontSize: "13px" }}>Account Holder Name</p>
+                  <p style={{ margin: 0, fontSize: "18px", fontFamily: "monospace", color: "#0066cc", fontWeight: "600" }}>{import.meta.env.VITE_UPI_NAME || "N/A"}</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(import.meta.env.VITE_UPI_NAME || "");
+                    toast.success("Account holder name copied!");
+                  }}
+                  style={{
+                    padding: "8px 12px",
+                    backgroundColor: "#4a90e2",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    marginLeft: 10
+                  }}
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+            <p style={{ marginBottom: 10, color: "#333", fontSize: "16px" }}>Amount to pay: <span style={{ fontSize: "22px", color: "#27ae60", fontWeight: "bold" }}>₹{discountedTotal}</span></p>
             <div style={{ marginTop: 20 }}>
               <label>Upload payment proof (screenshot/pdf):</label>
-              <input type="file" accept="image/*,application/pdf" onChange={handleFileUpload}  style={{ marginTop: 10 }} disabled={pendingVerification} />
+              <input type="file" accept="image/*,application/pdf" onChange={handleFileUpload} style={{ marginTop: 10 }} disabled={pendingVerification} />
               {uploadedFileUrl && (
                 <div style={{ marginTop: 10 }}>
-                  <a href={uploadedFileUrl} target="_blank" rel="noopener noreferrer" >View Uploaded File</a>
+                  <a href={uploadedFileUrl} target="_blank" rel="noopener noreferrer">View Uploaded File</a>
                 </div>
               )}
             </div>
