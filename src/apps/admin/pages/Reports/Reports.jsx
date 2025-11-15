@@ -20,12 +20,19 @@ const Reports = () => {
   const { data: usersData } = useGetAllUsersQuery({ limit: 10000, page: 1, search: "" });
   const users = usersData?.users || usersData?.data || [];
 
-  const { data: participantsData } = useGetParticipationsByEventIdQuery(selectedEvent, { skip: !selectedEvent });
-  const participants = participantsData?.participants || participantsData || [];
+  const { data: { participations } = {} } = useGetParticipationsByEventIdQuery(selectedEvent, { skip: !selectedEvent });
+  const participants = participations || [];
 
   const handleDownloadEventCSV = () => {
-    if (!selectedEvent) return;
-    const csv = exportParticipantsToCSV(participants || []);
+    if (!selectedEvent || !participants || participants.length === 0) {
+      alert('No participants found for this event');
+      return;
+    }
+    const csv = exportParticipantsToCSV(participants);
+    if (!csv) {
+      alert('Failed to generate CSV');
+      return;
+    }
     downloadCSV(csv, `event_${selectedEvent}_participants.csv`);
   };
 
@@ -33,13 +40,16 @@ const Reports = () => {
     if (!users || users.length === 0) return;
 
     // Build a simple CSV for users (id, name, email, college, mobile)
-    const headers = ["User ID", "Name", "Email", "College", "Mobile", "Role"];
+    const headers = ["User ID", "Name", "Email", "Image URL","Degree","College", "Mobile", "Year of Graduation","Role"];
     const rows = (users || []).map((u) => [
       u._id || u.id || "",
       u.name || "",
       u.email || "",
+      u.image || "",
+      u.degree || "",
       u.college || u.collegeName || "",
       u.mobile || u.phone || "",
+      u.yearOfGraduation || "",
       u.role || "",
     ]);
 
