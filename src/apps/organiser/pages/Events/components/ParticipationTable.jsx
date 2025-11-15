@@ -101,13 +101,16 @@ const ParticipationTable = ({ eventId }) => {
     },
     {
       label: "Team/Participant Members",
-      key: "teamMemberNames",
-      modifier: (value) => value ? value.join(", ") : "N/A",
+      key: "members",
+      modifier: (value) => {
+        if (!value || value.length === 0) return "N/A";
+        return value.map(member => `${member.name} (${member.email})`).join(", ");
+      },
     },
     {
       label: "Members Count",
       key: "members",
-      modifier: (value) => value.length,
+      modifier: (value) => value?.length || 0,
     },
     {
       label: "Attendance",
