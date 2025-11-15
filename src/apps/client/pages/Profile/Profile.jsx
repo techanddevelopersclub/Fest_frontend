@@ -143,6 +143,11 @@ const UserDetails = () => {
           </span>
         )}
       </p>
+
+        <div className={styles.item}>
+          <p className={styles.key}>ID</p>
+          <p className={styles.value}>{user?._id}</p>
+        </div>
       {!isVerified && (
         <button
           className={styles.verifyButton}
@@ -156,10 +161,7 @@ const UserDetails = () => {
       )}
       <div className={styles.details}>
         <div className={styles.title}>Personal</div>
-        <div className={styles.item}>
-          <p className={styles.key}>ID</p>
-          <p className={styles.value}>{user?._id}</p>
-        </div>
+
         <div className={styles.item}>
           <p className={styles.key}>Name</p>
           <p className={styles.value}>{user?.name}</p>
