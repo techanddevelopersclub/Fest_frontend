@@ -10,7 +10,7 @@ import { ImLab } from "react-icons/im";
 import { PiFlagBannerFill } from "react-icons/pi";
 import { BsFillGiftFill } from "react-icons/bs";
 import { IoMdNotifications } from "react-icons/io";
-import { MdPayment } from "react-icons/md";
+import { MdPayment, MdAssessment } from "react-icons/md";
 
 const AdminSidebarContext = createContext();
 
@@ -133,6 +133,12 @@ const ALL_LINKS = [
     path: "/admin/payments/verify",
     icon: <MdPayment />,
     roles: ["admin", "paymentVerifier"], // Both admins and payment verifiers
+  },
+  {
+    text: "Reports",
+    path: "/admin/reports",
+    icon: <MdAssessment />,
+    roles: ["admin"], // Only admins
   },
 ];
 

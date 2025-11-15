@@ -13,6 +13,7 @@ import FeatureFlagsIndex from "../../pages/FeatureFlags";
 import BannersIndex from "../../pages/Banners";
 import NotificationsIndex from "../../pages/Notifications";
 import PaymentVerification from "../../pages/PaymentVerification";
+import ReportsIndex from "../../pages/Reports/Reports";
 
 const Layout = () => {
   return (
@@ -32,6 +33,7 @@ const Layout = () => {
           <Route path="/banners/*" element={<BannersIndex />} />
           <Route path="/notifications/*" element={<NotificationsIndex />} />
           <Route path="/payments/verify" element={<PaymentVerification />} />
+          <Route path="/reports" element={<ReportsIndex />} />
         </Routes>
       </div>
     </div>
