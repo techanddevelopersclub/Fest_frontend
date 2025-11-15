@@ -79,6 +79,74 @@ h2.name {
   fill: var(--color-text-light);
 }
 
+.idSection {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background-color: var(--color-background-secondary, rgba(255, 255, 255, 0.05));
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+}
+
+.idContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.idLabel {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-light);
+  white-space: nowrap;
+}
+
+.idValue {
+  font-size: 0.8rem;
+  font-weight: 400;
+  font-family: monospace;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.idActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.idButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: 0.4rem;
+  background-color: var(--color-primary-500);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+}
+
+.idButton:hover {
+  background-color: var(--color-primary-600, var(--color-primary-500));
+  transform: scale(1.05);
+}
+
+.idButton:active {
+  transform: scale(0.95);
+}
+
 .verifyButton {
   width: 100%;
   margin-top: 1rem;
@@ -186,5 +254,10 @@ h2.name {
 
   .right .profile .details {
     display: none; /* Hide detailed info on mobile to save space */
+  }
+
+  /* Keep ID section visible on mobile */
+  .right .profile .idSection {
+    display: flex;
   }
 }

@@ -13,6 +13,8 @@ import { FaUserEdit } from "react-icons/fa";
 import { BiSolidOffer } from "react-icons/bi";
 import { IoMdSettings } from "react-icons/io";
 import { MdOutlineCurrencyRupee } from "react-icons/md";
+import { IoCopy } from "react-icons/io5";
+import { RiShareForwardLine } from "react-icons/ri";
 import { useSendVerificationEmailMutation } from "../../../../state/redux/auth/authApi";
 import Participations from "./components/Participations/Participations";
 import Offers from "./components/Offers/Offers";
@@ -125,6 +127,29 @@ const UserDetails = () => {
     }
   };
 
+  const handleCopyID = () => {
+    navigator.clipboard.writeText(user?._id);
+    toast.success("ID copied to clipboard");
+  };
+
+  const handleShareID = async () => {
+    const shareText = `My Event ID: ${user?._id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Event ID",
+          text: shareText,
+        });
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          toast.error("Unable to share ID");
+        }
+      }
+    } else {
+      handleCopyID();
+    }
+  };
+
   return (
     <div className={styles.profile}>
       <Avatar
@@ -143,6 +168,28 @@ const UserDetails = () => {
           </span>
         )}
       </p>
+      <div className={styles.idSection}>
+        <div className={styles.idContainer}>
+          <span className={styles.idLabel}>ID:</span>
+          <span className={styles.idValue}>{user?._id}</span>
+        </div>
+        <div className={styles.idActions}>
+          <button
+            className={styles.idButton}
+            onClick={handleCopyID}
+            title="Copy ID"
+          >
+            <IoCopy />
+          </button>
+          <button
+            className={styles.idButton}
+            onClick={handleShareID}
+            title="Share ID"
+          >
+            <RiShareForwardLine />
+          </button>
+        </div>
+      </div>
       {!isVerified && (
         <button
           className={styles.verifyButton}
