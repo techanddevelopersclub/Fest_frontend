@@ -67,7 +67,7 @@ const UsersList = () => {
             },
             {
               label: "Phone",
-              key: "phone",
+              key: "mobile",
             },
             {
               label: "College",
