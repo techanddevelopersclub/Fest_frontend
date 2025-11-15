@@ -218,13 +218,20 @@ h2.name {
     backdrop-filter: contrast(0.9) blur(1rem);
   }
 
+  /* Keep the details container visible but hide all rows except the ID row
+     so the ID can be shown on mobile while other details stay hidden */
   .right .profile .details {
-    display: none; /* Hide detailed info on mobile to save space */
+    display: block;
+  }
+
+  .right .profile .details .item {
+    display: none;
   }
 
   /* Show only ID row on mobile so user can copy/share it */
   .right .profile .details .idItem {
     display: flex;
+    align-items: center;
     justify-content: space-between;
   }
 }
