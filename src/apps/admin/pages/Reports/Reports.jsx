@@ -3,7 +3,8 @@ import styles from "./Reports.module.css";
 import { useGetAllEventsQuery } from "../../../../state/redux/events/eventsApi";
 import { useGetAllUsersQuery } from "../../../../state/redux/users/usersApi";
 import { useGetParticipationsByEventIdQuery } from "../../../../state/redux/participants/participantsApi";
-import { exportParticipantsToCSV, downloadCSV } from "../../../../utils/csvExport";
+import { useGetEntryPassesByEventQuery } from "../../../../state/redux/entryPass/entryPassApi";
+import { exportParticipantsToCSV, exportEntryPassesToCSV, downloadCSV } from "../../../../utils/csvExport";
 
 const Reports = () => {
   const [selectedEvent, setSelectedEvent] = useState("");
@@ -23,6 +24,9 @@ const Reports = () => {
   const { data: { participations } = {} } = useGetParticipationsByEventIdQuery(selectedEvent, { skip: !selectedEvent });
   const participants = participations || [];
 
+  const { data: { entryPasses: entryPassesArr } = {} } = useGetEntryPassesByEventQuery(selectedEvent, { skip: !selectedEvent });
+  const entryPasses = entryPassesArr || [];
+
   const handleDownloadEventCSV = () => {
     if (!selectedEvent || !participants || participants.length === 0) {
       alert('No participants found for this event');
@@ -34,6 +38,19 @@ const Reports = () => {
       return;
     }
     downloadCSV(csv, `event_${selectedEvent}_participants.csv`);
+  };
+
+  const handleDownloadEventPassesCSV = () => {
+    if (!selectedEvent || !entryPasses || entryPasses.length === 0) {
+      alert('No entry passes found for this event');
+      return;
+    }
+    const csv = exportEntryPassesToCSV(entryPasses);
+    if (!csv) {
+      alert('Failed to generate CSV');
+      return;
+    }
+    downloadCSV(csv, `event_${selectedEvent}_entry_passes.csv`);
   };
 
   const handleDownloadUsersCSV = () => {
@@ -88,6 +105,24 @@ const Reports = () => {
 
           <button onClick={handleDownloadEventCSV} disabled={!selectedEvent}>
             Download Event Participants CSV
+          </button>
+        </div>
+      </section>
+
+      <section className={styles.block}>
+        <h3>Event-wise Entry Passes</h3>
+        <div className={styles.controls}>
+          <select value={selectedEvent} onChange={(e) => setSelectedEvent(e.target.value)}>
+            <option value="">Select event</option>
+            {events?.map((ev) => (
+              <option key={ev._id || ev.id} value={ev._id || ev.id}>
+                {ev.name}
+              </option>
+            ))}
+          </select>
+
+          <button onClick={handleDownloadEventPassesCSV} disabled={!selectedEvent}>
+            Download Event Entry Passes CSV
           </button>
         </div>
       </section>
