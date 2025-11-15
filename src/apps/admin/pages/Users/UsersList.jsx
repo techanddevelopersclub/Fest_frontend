@@ -66,8 +66,12 @@ const UsersList = () => {
               key: "email",
             },
             {
-              label: "Gender",
-              key: "gender",
+              label: "Phone",
+              key: "phone",
+            },
+            {
+              label: "College",
+              key: "college",
             },
             {
               label: "Role",
