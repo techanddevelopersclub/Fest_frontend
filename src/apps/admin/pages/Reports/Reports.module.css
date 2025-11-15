@@ -1,4 +1,4 @@
-/* .reports {
+.reports {
   padding: 2rem;
   max-width: 1200px;
 }
@@ -54,8 +54,8 @@ select:focus {
 }
 
 button {
-  padding: 0.55rem 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* padding: 0.55rem 1rem; */
+
   color: white;
   border: none;
   border-radius: 6px;
@@ -79,4 +79,4 @@ button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   box-shadow: none;
-} */
+}
