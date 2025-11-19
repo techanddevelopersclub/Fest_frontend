@@ -26,7 +26,7 @@ const VerifyEmail = () => {
 
   const handleGoHome = (e) => {
     e.preventDefault();
-    navigate("/", { replace: true });
+    window.location.href = import.meta.env.VITE_FRONTEND_URL;
   };
 
   return (
