@@ -161,14 +161,53 @@ const handleSubmit = async (e) => {
     setShowPaymentModal(true);
   } else {
     try {
+      // Recompute members/names/size from latest inputs to avoid stale state
+      let members = [];
+      if (participantsInputAvailable()) {
+        /* placeholder for lint */
+      }
+      if (Array.isArray(participant.members) && participant.members.length > 0) {
+        members = [...participant.members];
+      }
+      // If the user typed member IDs in textarea, parse that instead
+      if (membersInput && typeof membersInput === "string") {
+        const parsed = membersInput
+          .split(",")
+          .map((m) => m.trim())
+          .filter(Boolean);
+        if (parsed.length > 0) members = [...new Set([...parsed, user._id])];
+      }
+      // Ensure leader is present
+      members = [...new Set([...(members || []), user._id])];
+
+      // Team member names
+      let teamMemberNames = Array.isArray(participant.teamMemberNames)
+        ? [...participant.teamMemberNames]
+        : [];
+      if (memberNamesInput && typeof memberNamesInput === "string") {
+        const parsedNames = memberNamesInput
+          .split(",")
+          .map((n) => n.trim())
+          .filter(Boolean);
+        if (parsedNames.length > 0) teamMemberNames = [...new Set([...parsedNames, user.name])];
+      }
+      // Ensure leader's name present for team events
+      if (event.minTeamSize > 1) {
+        teamMemberNames = [...new Set([...(teamMemberNames || []), user.name])];
+      } else if (teamMemberNames.length === 0) {
+        teamMemberNames = [user.name];
+      }
+
+      const teamSize = event.minTeamSize > 1 ? teamMemberNames.length : 1;
+
       const participantData = {
         event: event._id,
         leader: user._id,
         isTeam: event.minTeamSize > 1,
-        teamName: participant.teamName,
-        members: participant.members,
-        teamMemberNames: participant.teamMemberNames,
-        teamSize: participant.teamSize,
+        teamName: participant.teamName || "",
+        members,
+        teamMemberNames,
+        teamSize,
       };
       
       console.log("Sending participant data:", participantData);
@@ -225,14 +264,43 @@ const handleSubmit = async (e) => {
       return;
     }
     try {
+      // Recompute members/names/size before sending (same logic as submit)
+      let members = Array.isArray(participant.members) ? [...participant.members] : [];
+      if (membersInput && typeof membersInput === "string") {
+        const parsed = membersInput
+          .split(",")
+          .map((m) => m.trim())
+          .filter(Boolean);
+        if (parsed.length > 0) members = [...new Set([...parsed, user._id])];
+      }
+      members = [...new Set([...(members || []), user._id])];
+
+      let teamMemberNames = Array.isArray(participant.teamMemberNames)
+        ? [...participant.teamMemberNames]
+        : [];
+      if (memberNamesInput && typeof memberNamesInput === "string") {
+        const parsedNames = memberNamesInput
+          .split(",")
+          .map((n) => n.trim())
+          .filter(Boolean);
+        if (parsedNames.length > 0) teamMemberNames = [...new Set([...parsedNames, user.name])];
+      }
+      if (event.minTeamSize > 1) {
+        teamMemberNames = [...new Set([...(teamMemberNames || []), user.name])];
+      } else if (teamMemberNames.length === 0) {
+        teamMemberNames = [user.name];
+      }
+
+      const teamSize = event.minTeamSize > 1 ? teamMemberNames.length : 1;
+
       const pendingData = {
         event: event._id,
         leader: user._id,
         isTeam: event.minTeamSize > 1,
-        teamName: participant.teamName,
-        members: participant.members,
-        teamMemberNames: participant.teamMemberNames,
-        teamSize: participant.teamSize,
+        teamName: participant.teamName || "",
+        members,
+        teamMemberNames,
+        teamSize,
         paymentProofUrl: uploadedFileUrl,
         promoCode: promoCode || undefined,
         discountedAmountInINR: discountedTotal,
