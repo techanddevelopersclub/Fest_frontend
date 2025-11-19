@@ -99,12 +99,22 @@ const Registration = ({ event = {}, close }) => {
     const minMembers = Math.max(0, (event.minTeamSize || 1) - 1);
     const maxMembers = Math.max(0, (event.maxTeamSize || 1) - 1);
 
-    if (uniqueMemberIds.length < minMembers) {
-      setError(`Please enter ${minMembers} member ID${minMembers > 1 ? "s" : ""}`);
-    } else if (uniqueMemberIds.length > maxMembers) {
-      setError(`Maximum members allowed is ${maxMembers}`);
+    if (minMembers === maxMembers) {
+      // Exact count required
+      if (uniqueMemberIds.length !== minMembers) {
+        setError(`Please enter exactly ${minMembers} member ID${minMembers > 1 ? "s" : ""}`);
+      } else {
+        setError(null);
+      }
     } else {
-      setError(null);
+      // Range allowed
+      if (uniqueMemberIds.length < minMembers) {
+        setError(`Please enter ${minMembers} member ID${minMembers > 1 ? "s" : ""}`);
+      } else if (uniqueMemberIds.length > maxMembers) {
+        setError(`Maximum members allowed is ${maxMembers}`);
+      } else {
+        setError(null);
+      }
     }
 
     setMemberIds(uniqueMemberIds);
@@ -141,16 +151,38 @@ const Registration = ({ event = {}, close }) => {
     setMemberIds(uniqueMemberIds);
     setMemberIdsInput(uniqueMemberIds.join(', '));
     setMemberNames(prev => prev.slice(0, uniqueMemberIds.length));
-    setError(null);
+    
+    const minMembers = Math.max(0, (event.minTeamSize || 1) - 1);
+    const maxMembers = Math.max(0, (event.maxTeamSize || 1) - 1);
+
+    if (minMembers === maxMembers) {
+      // Exact count required
+      if (uniqueMemberIds.length !== minMembers) {
+        setError(`Please enter exactly ${minMembers} member ID${minMembers > 1 ? "s" : ""}`);
+      } else {
+        setError(null);
+      }
+    } else {
+      // Range allowed
+      if (uniqueMemberIds.length < minMembers) {
+        setError(`Please enter ${minMembers} member ID${minMembers > 1 ? "s" : ""}`);
+      } else if (uniqueMemberIds.length > maxMembers) {
+        setError(`Maximum members allowed is ${maxMembers}`);
+      } else {
+        setError(null);
+      }
+    }
   };
 
   const handleTeamMemberNamesChange = (e) => {
+    const input = e.target.value;
+    
     if (event.minTeamSize <= 1) {
       // For solo events, just accept the entered name
-      setMemberNames(e.target.value ? [e.target.value] : [user.name]);
+      setMemberNames(input ? [input] : []);
     } else {
       // For team events, parse comma-separated names
-      let names = e.target.value
+      let names = input
         .split(",")
         .map((name) => name.trim())
         .filter((name) => name !== "");
@@ -482,9 +514,13 @@ const handleSubmit = async (e) => {
               !participant.teamName ||
               (event.minTeamSize > 1 &&
                 (membersNotRegistered ? (
-                  memberNames.length < (event.minTeamSize - 1) || memberNames.length > (event.maxTeamSize - 1)
+                  event.minTeamSize === event.maxTeamSize
+                    ? memberNames.length !== (event.minTeamSize - 1)
+                    : memberNames.length < (event.minTeamSize - 1) || memberNames.length > (event.maxTeamSize - 1)
                 ) : (
-                  memberIds.length < (event.minTeamSize - 1) || memberIds.length > (event.maxTeamSize - 1)
+                  event.minTeamSize === event.maxTeamSize
+                    ? memberIds.length !== (event.minTeamSize - 1)
+                    : memberIds.length < (event.minTeamSize - 1) || memberIds.length > (event.maxTeamSize - 1)
                 ))) ||
               !!error ||
               isLoading
