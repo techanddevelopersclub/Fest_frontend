@@ -74,22 +74,21 @@ const Registration = ({ event = {}, close }) => {
       .filter((member) => member !== "");
     members = [...members, user._id];
     members = [...new Set(members)];
+    
+    // Update error state based on member count
     if (members.length < event.minTeamSize) {
       setError(`Minimum team size is ${event.minTeamSize}`);
-    } else if (members.length >= event.maxTeamSize) {
-      // equal because leader is also a member
+    } else if (members.length > event.maxTeamSize) {
       setError(`Maximum team size is ${event.maxTeamSize}`);
     } else {
       setError(null);
     }
+    
     setMembersInput(e.target.value);
     setParticipant({
       ...participant,
       members: members,
-      // For team events, team size should be based on the number of names if available, otherwise members
-      teamSize: event.minTeamSize > 1 && participant.teamMemberNames.length > 0 
-        ? participant.teamMemberNames.length 
-        : members.length,
+      teamSize: members.length,
     });
   };
 
@@ -163,42 +162,31 @@ const handleSubmit = async (e) => {
     try {
       // Recompute members/names/size from latest inputs to avoid stale state
       let members = [];
-      if (participantsInputAvailable()) {
-        /* placeholder for lint */
-      }
-      if (Array.isArray(participant.members) && participant.members.length > 0) {
-        members = [...participant.members];
-      }
-      // If the user typed member IDs in textarea, parse that instead
+      // If the user typed member IDs in textarea, parse that
       if (membersInput && typeof membersInput === "string") {
         const parsed = membersInput
           .split(",")
           .map((m) => m.trim())
           .filter(Boolean);
-        if (parsed.length > 0) members = [...new Set([...parsed, user._id])];
+        if (parsed.length > 0) members = [...parsed];
       }
       // Ensure leader is present
       members = [...new Set([...(members || []), user._id])];
 
       // Team member names
-      let teamMemberNames = Array.isArray(participant.teamMemberNames)
-        ? [...participant.teamMemberNames]
-        : [];
+      let teamMemberNames = [];
       if (memberNamesInput && typeof memberNamesInput === "string") {
         const parsedNames = memberNamesInput
           .split(",")
           .map((n) => n.trim())
           .filter(Boolean);
-        if (parsedNames.length > 0) teamMemberNames = [...new Set([...parsedNames, user.name])];
+        if (parsedNames.length > 0) teamMemberNames = [...parsedNames];
       }
-      // Ensure leader's name present for team events
-      if (event.minTeamSize > 1) {
-        teamMemberNames = [...new Set([...(teamMemberNames || []), user.name])];
-      } else if (teamMemberNames.length === 0) {
-        teamMemberNames = [user.name];
-      }
+      // Ensure leader's name present
+      teamMemberNames = [...new Set([...(teamMemberNames || []), user.name])];
 
-      const teamSize = event.minTeamSize > 1 ? teamMemberNames.length : 1;
+      // Team size should always be based on members count
+      const teamSize = members.length;
 
       const participantData = {
         event: event._id,
@@ -265,33 +253,27 @@ const handleSubmit = async (e) => {
     }
     try {
       // Recompute members/names/size before sending (same logic as submit)
-      let members = Array.isArray(participant.members) ? [...participant.members] : [];
+      let members = [];
       if (membersInput && typeof membersInput === "string") {
         const parsed = membersInput
           .split(",")
           .map((m) => m.trim())
           .filter(Boolean);
-        if (parsed.length > 0) members = [...new Set([...parsed, user._id])];
+        if (parsed.length > 0) members = [...parsed];
       }
       members = [...new Set([...(members || []), user._id])];
 
-      let teamMemberNames = Array.isArray(participant.teamMemberNames)
-        ? [...participant.teamMemberNames]
-        : [];
+      let teamMemberNames = [];
       if (memberNamesInput && typeof memberNamesInput === "string") {
         const parsedNames = memberNamesInput
           .split(",")
           .map((n) => n.trim())
           .filter(Boolean);
-        if (parsedNames.length > 0) teamMemberNames = [...new Set([...parsedNames, user.name])];
+        if (parsedNames.length > 0) teamMemberNames = [...parsedNames];
       }
-      if (event.minTeamSize > 1) {
-        teamMemberNames = [...new Set([...(teamMemberNames || []), user.name])];
-      } else if (teamMemberNames.length === 0) {
-        teamMemberNames = [user.name];
-      }
+      teamMemberNames = [...new Set([...(teamMemberNames || []), user.name])];
 
-      const teamSize = event.minTeamSize > 1 ? teamMemberNames.length : 1;
+      const teamSize = members.length;
 
       const pendingData = {
         event: event._id,
