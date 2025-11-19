@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import styles from "./Registration.module.css";
 import { useCreateParticipantMutation } from "../../../../../../state/redux/participants/participantsApi";
 import { useCreatePendingParticipantMutation, useListPendingParticipantsQuery } from "../../../../../../state/redux/pendingParticipants/pendingParticipantsApi";
-import { useGetUserByIdQuery } from "../../../../../../state/redux/users/usersApi";
 import { useSelector } from "react-redux";
 import { selectUser } from "../../../../../../state/redux/auth/authSlice";
 import Button from "../../../../atoms/Button";
@@ -58,68 +57,6 @@ const Registration = ({ event = {}, close }) => {
       teamSize: prev.members.length
     }));
   }, [event.minTeamSize, user?.name]);
-
-  // Auto-fetch and populate member names when member IDs are added
-  useEffect(() => {
-    const fetchMemberNames = async () => {
-      if (participant.members.length <= 1) return; // Only leader
-      
-      const memberIds = participant.members.filter(id => id !== user._id);
-      if (memberIds.length === 0) return;
-
-      const namesToFetch = [];
-      
-      for (const memberId of memberIds) {
-        // Only fetch if we don't already have a name for this ID
-        const existingNameIndex = participant.teamMemberNames.findIndex(
-          (_, idx) => participant.members[idx] === memberId
-        );
-        
-        if (existingNameIndex === -1) {
-          namesToFetch.push(memberId);
-        }
-      }
-
-      if (namesToFetch.length === 0) return;
-
-      // Fetch each member's data
-      try {
-        const fetchedNames = [];
-        for (const memberId of namesToFetch) {
-          try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/users/${memberId}`);
-            if (response.ok) {
-              const data = await response.json();
-              fetchedNames.push({ id: memberId, name: data.user?.name || data.name || "Unknown" });
-            }
-          } catch (err) {
-            console.error(`Failed to fetch user ${memberId}:`, err);
-            fetchedNames.push({ id: memberId, name: "Unknown" });
-          }
-        }
-
-        // Update member names with fetched data
-        let updatedNames = [...participant.teamMemberNames];
-        for (const { id, name } of fetchedNames) {
-          const index = participant.members.indexOf(id);
-          if (index !== -1 && updatedNames[index] !== name) {
-            updatedNames[index] = name;
-          }
-        }
-
-        setParticipant(prev => ({
-          ...prev,
-          teamMemberNames: updatedNames
-        }));
-        setMemberNamesInput(updatedNames.join(", "));
-      } catch (err) {
-        console.error("Error fetching member names:", err);
-      }
-    };
-
-    fetchMemberNames();
-  }, [participant.members, user._id]);
-
   const [verificationStatus, setVerificationStatus] = useState(false);
   const [createPendingParticipant, { isLoading: isPendingLoading }] = useCreatePendingParticipantMutation();
 
