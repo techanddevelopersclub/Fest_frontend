@@ -63,8 +63,10 @@ const Registration = ({ event = {}, close }) => {
 
   const handleTeamMembersChange = (e) => {
     const input = e.target.value;
+    
+    // Parse input: split by comma and/or whitespace, trim each entry
     const parsed = input
-      .split(",")
+      .split(/[,\s]+/)  // Split by comma or whitespace
       .map((member) => member.trim())
       .filter((member) => member !== "");
 
