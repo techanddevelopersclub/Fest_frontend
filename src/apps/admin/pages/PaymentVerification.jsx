@@ -46,6 +46,11 @@ const PaymentVerification = () => {
     setPage(1);
   }, [eventFilter, search]);
 
+  // Reset page when switching tabs
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab]);
+
   const handleVerify = async (id, type) => {
     const confirmed = window.confirm("Are you sure you want to verify this payment?");
     if (!confirmed) return;
@@ -128,6 +133,12 @@ const PaymentVerification = () => {
     ? eItemsRaw.filter(item => (item.event?.name || "").toLowerCase().includes(eventFilter.toLowerCase()))
     : eItemsRaw;
 
+  // Pagination calculations (use API totals when present)
+  const pTotal = pData?.total ?? (Array.isArray(pData) ? pData.length : pItemsRaw.length);
+  const eTotal = eData?.total ?? (Array.isArray(eData) ? eData.length : eItemsRaw.length);
+  const pPages = Math.max(1, Math.ceil((pTotal || 0) / limit));
+  const ePages = Math.max(1, Math.ceil((eTotal || 0) / limit));
+
   return (
     <div className={styles.page}>
       <Card>
@@ -182,6 +193,17 @@ const PaymentVerification = () => {
         }}>
           {activeTab === "participants" ? renderTable(pItems, "participant") : renderTable(eItems, "entryPass")}
         </div>
+
+          {/* Pagination controls */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12 }}>
+            <div style={{ fontSize: 13, color: "var(--muted)" }}>
+              Showing page {page} of {activeTab === "participants" ? pPages : ePages} ({activeTab === "participants" ? pTotal : eTotal} items)
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <Button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>Prev</Button>
+              <Button onClick={() => setPage((p) => p + 1)} disabled={page >= (activeTab === "participants" ? pPages : ePages)}>Next</Button>
+            </div>
+          </div>
       </Card>
 
       {modal && (
