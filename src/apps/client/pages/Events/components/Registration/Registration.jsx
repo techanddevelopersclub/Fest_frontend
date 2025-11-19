@@ -21,8 +21,8 @@ const Registration = ({ event = {}, close }) => {
     teamSize: 1,
   });
   const [error, setError] = useState(null);
-  const [membersInput, setMembersInput] = useState("");
-  const [memberNamesInput, setMemberNamesInput] = useState("");
+  const [memberIds, setMemberIds] = useState([]);
+  const [memberNames, setMemberNames] = useState([]);
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromotion, setAppliedPromotion] = useState(null);
   const [discountedTotal, setDiscountedTotal] = useState(event.registrationFeesInINR || 0);
@@ -41,22 +41,14 @@ const Registration = ({ event = {}, close }) => {
     }
   }, [pendingParticipantsRaw, event._id, user._id]);
 
-  // Initialize member names input
+  // Cleanup initial state: filter out any accidental leader duplicates
   useEffect(() => {
-    if (event.minTeamSize <= 1) {
-      // For solo events, initialize with user's name
-      setMemberNamesInput(user?.name || "");
-    } else {
-      // For team events, initialize empty
-      setMemberNamesInput("");
+    if (event.minTeamSize > 1) {
+      // For team events, ensure no leader in memberIds or memberNames
+      setMemberIds(prev => prev.filter(id => id !== user?._id));
+      setMemberNames(prev => prev.filter((name, idx) => memberIds[idx] !== user?._id));
     }
-    
-    // Ensure team size is properly initialized
-    setParticipant(prev => ({
-      ...prev,
-      teamSize: prev.members.length
-    }));
-  }, [event.minTeamSize, user?.name]);
+  }, [user?._id, event.minTeamSize]);
   const [verificationStatus, setVerificationStatus] = useState(false);
   const [createPendingParticipant, { isLoading: isPendingLoading }] = useCreatePendingParticipantMutation();
 
@@ -67,26 +59,33 @@ const Registration = ({ event = {}, close }) => {
     });
   };
 
+  const MONGO_OBJECTID_REGEX = /^[0-9a-fA-F]{24}$/;
+
   const handleTeamMembersChange = (e) => {
     const input = e.target.value;
-    setMembersInput(input);
-
     const parsed = input
       .split(",")
       .map((member) => member.trim())
       .filter((member) => member !== "");
 
-    // Do not allow user to include the leader's ID in this field
-    const includesLeader = parsed.includes(user._id);
-    const memberIdsOnly = parsed.filter((id) => id !== user._id);
-    const uniqueMemberIds = [...new Set(memberIdsOnly)];
+    // Block if leader's ID is included
+    if (parsed.includes(user._id)) {
+      setError("Do not include the team leader's ID in members list");
+      return;
+    }
 
+    // Validate ObjectId format for all entries
+    const invalidIds = parsed.filter(id => !MONGO_OBJECTID_REGEX.test(id));
+    if (invalidIds.length > 0) {
+      setError(`Invalid ID format. All IDs must be valid ObjectIds (${invalidIds[0]})`);
+      return;
+    }
+
+    const uniqueMemberIds = [...new Set(parsed)];
     const minMembers = Math.max(0, (event.minTeamSize || 1) - 1);
     const maxMembers = Math.max(0, (event.maxTeamSize || 1) - 1);
 
-    if (includesLeader) {
-      setError("Do not include the team leader's ID in members list");
-    } else if (uniqueMemberIds.length < minMembers) {
+    if (uniqueMemberIds.length < minMembers) {
       setError(`Please enter ${minMembers} member ID${minMembers > 1 ? "s" : ""}`);
     } else if (uniqueMemberIds.length > maxMembers) {
       setError(`Maximum members allowed is ${maxMembers}`);
@@ -94,71 +93,33 @@ const Registration = ({ event = {}, close }) => {
       setError(null);
     }
 
-    const members = [...new Set([...uniqueMemberIds, user._id])];
-    setParticipant({
-      ...participant,
-      members,
-      teamSize: members.length,
-    });
+    setMemberIds(uniqueMemberIds);
+    // Keep memberNames aligned; trim if IDs were removed
+    setMemberNames(prev => prev.slice(0, uniqueMemberIds.length));
   };
 
   const handleTeamMemberNamesChange = (e) => {
-    let memberNames = e.target.value
-      .split(",")
-      .map((name) => name.trim())
-      .filter((name) => name !== "");
-    
-    // For solo events, just use the entered name
     if (event.minTeamSize <= 1) {
-      memberNames = memberNames.length > 0 ? memberNames : [user.name];
+      // For solo events, just accept the entered name
+      setMemberNames(e.target.value ? [e.target.value] : [user.name]);
     } else {
-      // For team events, add the leader's name
-      memberNames = [...memberNames, user.name];
-      memberNames = [...new Set(memberNames)];
+      // For team events, parse comma-separated names
+      let names = e.target.value
+        .split(",")
+        .map((name) => name.trim())
+        .filter((name) => name !== "");
+      
+      // Filter out leader's name if accidentally included
+      names = names.filter(name => name.toLowerCase() !== user?.name?.toLowerCase());
+      
+      setMemberNames(names);
     }
-    
-    console.log("Team member names changed:", {
-      input: e.target.value,
-      processed: memberNames,
-      isTeam: event.minTeamSize > 1,
-      teamSize: event.minTeamSize > 1 ? memberNames.length : participant.members.length
-    });
-    
-    setMemberNamesInput(e.target.value);
-    setParticipant({
-      ...participant,
-      teamMemberNames: memberNames,
-      // For team events, team size should be based on the number of names entered
-      teamSize: event.minTeamSize > 1 ? memberNames.length : participant.members.length,
-    });
   };
 
   const handleRemoveMember = (index) => {
-    let members = participant.members.filter((_, i) => i !== index);
-    let memberNames = participant.teamMemberNames.filter((_, i) => i !== index);
-    
-    if (event.minTeamSize > 1) {
-      // For team events, add back the leader
-      members = [...members, user._id];
-      memberNames = [...memberNames, user.name];
-      members = [...new Set(members)];
-      memberNames = [...new Set(memberNames)];
-    } else {
-      // For solo events, ensure at least one name remains
-      if (memberNames.length === 0) {
-        memberNames = [user.name];
-      }
-    }
-    
-    setMembersInput(members.join(", "));
-    setMemberNamesInput(memberNames.join(", "));
-    setParticipant({
-      ...participant,
-      members: members,
-      teamMemberNames: memberNames,
-      // For team events, team size should be based on the number of names
-      teamSize: event.minTeamSize > 1 ? memberNames.length : members.length,
-    });
+    // Only filter by index, no shifting or complex logic
+    setMemberIds(prev => prev.filter((_, i) => i !== index));
+    setMemberNames(prev => prev.filter((_, i) => i !== index));
   };
 
 const handleSubmit = async (e) => {
@@ -170,32 +131,9 @@ const handleSubmit = async (e) => {
     setShowPaymentModal(true);
   } else {
     try {
-      // Recompute members/names/size from latest inputs to avoid stale state
-      let members = [];
-      // If the user typed member IDs in textarea, parse that
-      if (membersInput && typeof membersInput === "string") {
-        const parsed = membersInput
-          .split(",")
-          .map((m) => m.trim())
-          .filter(Boolean);
-        if (parsed.length > 0) members = [...parsed];
-      }
-      // Ensure leader is present
-      members = [...new Set([...(members || []), user._id])];
-
-      // Team member names
-      let teamMemberNames = [];
-      if (memberNamesInput && typeof memberNamesInput === "string") {
-        const parsedNames = memberNamesInput
-          .split(",")
-          .map((n) => n.trim())
-          .filter(Boolean);
-        if (parsedNames.length > 0) teamMemberNames = [...parsedNames];
-      }
-      // Ensure leader's name present
-      teamMemberNames = [...new Set([...(teamMemberNames || []), user.name])];
-
-      // Team size should always be based on members count
+      // Build members array: always include leader + member IDs
+      const members = [...new Set([...memberIds, user._id])];
+      const teamMemberNames = [...memberNames, user.name];
       const teamSize = members.length;
 
       const participantData = {
@@ -262,27 +200,9 @@ const handleSubmit = async (e) => {
       return;
     }
     try {
-      // Recompute members/names/size before sending (same logic as submit)
-      let members = [];
-      if (membersInput && typeof membersInput === "string") {
-        const parsed = membersInput
-          .split(",")
-          .map((m) => m.trim())
-          .filter(Boolean);
-        if (parsed.length > 0) members = [...parsed];
-      }
-      members = [...new Set([...(members || []), user._id])];
-
-      let teamMemberNames = [];
-      if (memberNamesInput && typeof memberNamesInput === "string") {
-        const parsedNames = memberNamesInput
-          .split(",")
-          .map((n) => n.trim())
-          .filter(Boolean);
-        if (parsedNames.length > 0) teamMemberNames = [...parsedNames];
-      }
-      teamMemberNames = [...new Set([...(teamMemberNames || []), user.name])];
-
+      // Build members array from state
+      const members = [...new Set([...memberIds, user._id])];
+      const teamMemberNames = [...memberNames, user.name];
       const teamSize = members.length;
 
       const pendingData = {
@@ -417,7 +337,7 @@ const handleSubmit = async (e) => {
                 id="teamMembers"
                 className={styles.input}
                 onChange={handleTeamMembersChange}
-                value={membersInput}
+                value={memberIds.join(", ")}
                 placeholder="Enter comma separated IDs of your team members."
                 disabled={pendingVerification}
               />
@@ -438,12 +358,12 @@ const handleSubmit = async (e) => {
               id="teamMemberNames"
               className={styles.input}
               onChange={handleTeamMemberNamesChange}
-              value={memberNamesInput}
+              value={memberNames.join(", ")}
               placeholder={event.minTeamSize > 1 ? "Enter comma separated names of your team members." : "Enter your name"}
               disabled={pendingVerification}
             />
             <div className={styles.members}>
-              {participant.teamMemberNames.map((memberName, index) => (
+              {memberNames.map((memberName, index) => (
                 <div className={styles.member} key={index}>
                   <div className={styles.name}>{memberName}</div>
                   <button
@@ -457,10 +377,10 @@ const handleSubmit = async (e) => {
                 </div>
               ))}
             </div>
-            {participant.teamMemberNames.length > 0 && (
+            {memberNames.length > 0 && (
               <div className={styles.teamInfo}>
                 <p className={styles.teamCount}>
-                  Total Team Members: <strong>{participant.teamMemberNames.length}</strong>
+                  Total Team Members: <strong>{memberIds.length + 1}</strong>
                 </p>
               </div>
             )}
@@ -482,9 +402,10 @@ const handleSubmit = async (e) => {
             className={styles.submit}
             disabled={
               pendingVerification ||
-              (event.minTeamSize > 1 &&
-                participant.members.length !== event.minTeamSize) ||
               !participant.teamName ||
+              (event.minTeamSize > 1 &&
+                (memberIds.length < (event.minTeamSize - 1) ||
+                 memberIds.length > (event.maxTeamSize - 1))) ||
               isLoading
             }
           >
