@@ -68,26 +68,36 @@ const Registration = ({ event = {}, close }) => {
   };
 
   const handleTeamMembersChange = (e) => {
-    let members = e.target.value
+    const input = e.target.value;
+    setMembersInput(input);
+
+    const parsed = input
       .split(",")
       .map((member) => member.trim())
       .filter((member) => member !== "");
-    members = [...members, user._id];
-    members = [...new Set(members)];
-    
-    // Update error state based on member count
-    if (members.length < event.minTeamSize) {
-      setError(`Minimum team size is ${event.minTeamSize}`);
-    } else if (members.length > event.maxTeamSize) {
-      setError(`Maximum team size is ${event.maxTeamSize}`);
+
+    // Do not allow user to include the leader's ID in this field
+    const includesLeader = parsed.includes(user._id);
+    const memberIdsOnly = parsed.filter((id) => id !== user._id);
+    const uniqueMemberIds = [...new Set(memberIdsOnly)];
+
+    const minMembers = Math.max(0, (event.minTeamSize || 1) - 1);
+    const maxMembers = Math.max(0, (event.maxTeamSize || 1) - 1);
+
+    if (includesLeader) {
+      setError("Do not include the team leader's ID in members list");
+    } else if (uniqueMemberIds.length < minMembers) {
+      setError(`Please enter ${minMembers} member ID${minMembers > 1 ? "s" : ""}`);
+    } else if (uniqueMemberIds.length > maxMembers) {
+      setError(`Maximum members allowed is ${maxMembers}`);
     } else {
       setError(null);
     }
-    
-    setMembersInput(e.target.value);
+
+    const members = [...new Set([...uniqueMemberIds, user._id])];
     setParticipant({
       ...participant,
-      members: members,
+      members,
       teamSize: members.length,
     });
   };
@@ -411,6 +421,10 @@ const handleSubmit = async (e) => {
                 placeholder="Enter comma separated IDs of your team members."
                 disabled={pendingVerification}
               />
+              <div style={{ fontSize: "0.85rem", color: "#666", marginTop: "0.5rem" }}>
+                <div>• Enter a valid ID</div>
+                <div>• Only enter members ID (Not Team Leader)</div>
+              </div>
             </div>
           )}
           
@@ -469,12 +483,8 @@ const handleSubmit = async (e) => {
             disabled={
               pendingVerification ||
               (event.minTeamSize > 1 &&
-                participant.members.length < event.minTeamSize) ||
-              (event.minTeamSize > 1 &&
-                participant.members.length > event.maxTeamSize) ||
+                participant.members.length !== event.minTeamSize) ||
               !participant.teamName ||
-              !participant.teamMemberNames ||
-              participant.teamMemberNames.length === 0 ||
               isLoading
             }
           >
