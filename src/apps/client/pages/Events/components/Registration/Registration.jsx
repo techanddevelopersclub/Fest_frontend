@@ -425,43 +425,43 @@ const handleSubmit = async (e) => {
             </div>
           )}
           
-          <div className={styles.formGroup}>
-            <label htmlFor="teamMemberNames">
-              {event.minTeamSize > 1 ? "Team Member Names" : "Participant Name"}
-            </label>
-            <textarea
-              type="text"
-              name="teamMemberNames"
-              id="teamMemberNames"
-              className={styles.input}
-              onChange={handleTeamMemberNamesChange}
-              value={memberNames.join(", ")}
-              placeholder={event.minTeamSize > 1 ? "Enter comma separated names of your team members." : "Enter your name"}
-              disabled={pendingVerification}
-            />
-            <div className={styles.members}>
-              {memberNames.map((memberName, index) => (
-                <div className={styles.member} key={index}>
-                  <div className={styles.name}>{memberName}</div>
-                  <button
-                    type="button"
-                    className={styles.remove}
-                    onClick={() => handleRemoveMember(index)}
-                    disabled={pendingVerification}
-                  >
-                    &times;
-                  </button>
-                </div>
-              ))}
-            </div>
-            {memberNames.length > 0 && (
-              <div className={styles.teamInfo}>
-                <p className={styles.teamCount}>
-                  Total Team Members: <strong>{(membersNotRegistered ? memberNames.length : memberIds.length) + 1}</strong>
-                </p>
+          {event.minTeamSize > 1 && membersNotRegistered && (
+            <div className={styles.formGroup}>
+              <label htmlFor="teamMemberNames">Team Member Names</label>
+              <textarea
+                type="text"
+                name="teamMemberNames"
+                id="teamMemberNames"
+                className={styles.input}
+                onChange={handleTeamMemberNamesChange}
+                value={memberNames.join(", ")}
+                placeholder={"Enter comma separated names of your team members."}
+                disabled={pendingVerification}
+              />
+              <div className={styles.members}>
+                {memberNames.map((memberName, index) => (
+                  <div className={styles.member} key={index}>
+                    <div className={styles.name}>{memberName}</div>
+                    <button
+                      type="button"
+                      className={styles.remove}
+                      onClick={() => handleRemoveMember(index)}
+                      disabled={pendingVerification}
+                    >
+                      &times;
+                    </button>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
+              {memberNames.length > 0 && (
+                <div className={styles.teamInfo}>
+                  <p className={styles.teamCount}>
+                    Total Team Members: <strong>{memberNames.length + 1}</strong>
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
           {event.registrationFeesInINR > 0 && (
             <ApplyPromoCode
               onChange={(p) => setPromoCode(p)}
@@ -486,6 +486,7 @@ const handleSubmit = async (e) => {
                 ) : (
                   memberIds.length < (event.minTeamSize - 1) || memberIds.length > (event.maxTeamSize - 1)
                 ))) ||
+              !!error ||
               isLoading
             }
           >
