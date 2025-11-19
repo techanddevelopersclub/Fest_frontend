@@ -22,7 +22,9 @@ const Registration = ({ event = {}, close }) => {
   });
   const [error, setError] = useState(null);
   const [memberIds, setMemberIds] = useState([]);
+  const [memberIdsInput, setMemberIdsInput] = useState("");
   const [memberNames, setMemberNames] = useState([]);
+  const [membersNotRegistered, setMembersNotRegistered] = useState(false);
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromotion, setAppliedPromotion] = useState(null);
   const [discountedTotal, setDiscountedTotal] = useState(event.registrationFeesInINR || 0);
@@ -63,13 +65,23 @@ const Registration = ({ event = {}, close }) => {
 
   const handleTeamMembersChange = (e) => {
     const input = e.target.value;
-    
+    setMemberIdsInput(input);
+
     // Parse input: split by comma and/or whitespace, trim each entry
     const parsed = input
       .split(/[,\s]+/)  // Split by comma or whitespace
       .map((member) => member.trim())
       .filter((member) => member !== "");
 
+    // If user is still typing a single id (no delimiter) we don't validate yet
+    const hasDelimiter = /[,\n]/.test(input) || parsed.length > 1;
+    if (!hasDelimiter) {
+      // allow typing without validation
+      setError(null);
+      return;
+    }
+
+    // From here: user pasted or finished one/more entries — validate
     // Block if leader's ID is included
     if (parsed.includes(user._id)) {
       setError("Do not include the team leader's ID in members list");
@@ -98,6 +110,38 @@ const Registration = ({ event = {}, close }) => {
     setMemberIds(uniqueMemberIds);
     // Keep memberNames aligned; trim if IDs were removed
     setMemberNames(prev => prev.slice(0, uniqueMemberIds.length));
+  };
+
+  const handleTeamMembersBlur = (e) => {
+    const input = e.target.value;
+    const parsed = input
+      .split(/[,\s]+/)
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    if (parsed.length === 0) {
+      setMemberIds([]);
+      setMemberIdsInput("");
+      setError(null);
+      return;
+    }
+
+    // Final validation on blur (even if no delimiter)
+    if (parsed.includes(user._id)) {
+      setError("Do not include the team leader's ID in members list");
+      return;
+    }
+    const invalidIds = parsed.filter(id => !MONGO_OBJECTID_REGEX.test(id));
+    if (invalidIds.length > 0) {
+      setError(`Invalid ID format. All IDs must be valid ObjectIds (${invalidIds[0]})`);
+      return;
+    }
+
+    const uniqueMemberIds = [...new Set(parsed)];
+    setMemberIds(uniqueMemberIds);
+    setMemberIdsInput(uniqueMemberIds.join(', '));
+    setMemberNames(prev => prev.slice(0, uniqueMemberIds.length));
+    setError(null);
   };
 
   const handleTeamMemberNamesChange = (e) => {
@@ -333,20 +377,51 @@ const handleSubmit = async (e) => {
           {event.minTeamSize > 1 && (
             <div className={styles.formGroup}>
               <label htmlFor="teamMembers">Team Members (IDs)</label>
-              <textarea
-                type="text"
-                name="teamMembers"
-                id="teamMembers"
-                className={styles.input}
-                onChange={handleTeamMembersChange}
-                value={memberIds.join(", ")}
-                placeholder="Enter comma separated IDs of your team members."
-                disabled={pendingVerification}
-              />
-              <div style={{ fontSize: "0.85rem", color: "#666", marginTop: "0.5rem" }}>
-                <div>• Enter a valid ID</div>
-                <div>• Only enter members ID (Not Team Leader)</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+                <input
+                  id="membersNotRegistered"
+                  type="checkbox"
+                  checked={membersNotRegistered}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setMembersNotRegistered(checked);
+                    setError(null);
+                    // Clear opposing fields when toggling
+                    if (checked) {
+                      setMemberIds([]);
+                    } else {
+                      setMemberNames([]);
+                    }
+                  }}
+                />
+                <label htmlFor="membersNotRegistered" style={{ margin: 0 }}>Members not registered</label>
               </div>
+
+              {!membersNotRegistered && (
+                <>
+                  <textarea
+                    type="text"
+                    name="teamMembers"
+                    id="teamMembers"
+                    className={styles.input}
+                    onChange={handleTeamMembersChange}
+                    onBlur={handleTeamMembersBlur}
+                    value={memberIdsInput}
+                    placeholder="Enter comma separated IDs of your team members."
+                    disabled={pendingVerification}
+                  />
+                  <div style={{ fontSize: "0.85rem", color: "#666", marginTop: "0.5rem" }}>
+                    <div>• Enter a valid ID</div>
+                    <div>• Only enter members ID (Not Team Leader)</div>
+                  </div>
+                </>
+              )}
+
+              {membersNotRegistered && (
+                <div style={{ fontSize: "0.9rem", color: "#333", marginTop: "0.5rem" }}>
+                  Enter member names below (leader will be added automatically). Do not enter the leader's name.
+                </div>
+              )}
             </div>
           )}
           
@@ -382,7 +457,7 @@ const handleSubmit = async (e) => {
             {memberNames.length > 0 && (
               <div className={styles.teamInfo}>
                 <p className={styles.teamCount}>
-                  Total Team Members: <strong>{memberIds.length + 1}</strong>
+                  Total Team Members: <strong>{(membersNotRegistered ? memberNames.length : memberIds.length) + 1}</strong>
                 </p>
               </div>
             )}
@@ -406,8 +481,11 @@ const handleSubmit = async (e) => {
               pendingVerification ||
               !participant.teamName ||
               (event.minTeamSize > 1 &&
-                (memberIds.length < (event.minTeamSize - 1) ||
-                 memberIds.length > (event.maxTeamSize - 1))) ||
+                (membersNotRegistered ? (
+                  memberNames.length < (event.minTeamSize - 1) || memberNames.length > (event.maxTeamSize - 1)
+                ) : (
+                  memberIds.length < (event.minTeamSize - 1) || memberIds.length > (event.maxTeamSize - 1)
+                ))) ||
               isLoading
             }
           >
