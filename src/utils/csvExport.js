@@ -10,6 +10,7 @@ export const exportParticipantsToCSV = (participants) => {
 
   // Define CSV headers
   const headers = [
+    'Event Name',
     'Registered At',
     'Team/Participant Name',
     'Leader Name',
@@ -17,7 +18,7 @@ export const exportParticipantsToCSV = (participants) => {
     'Leader Mobile',
     'Leader Branch',
     'Team Size',
-    'Team Members with Email',
+    'Team Members (email, mobile)',
     'Members Count',
     'Is Team',
     'Attendance',
@@ -34,7 +35,7 @@ export const exportParticipantsToCSV = (participants) => {
     const leaderBranch = participant.leader?.branchName || 'N/A';
     const teamSize = participant.teamSize || 1;
     const teamMembers = participant.members && participant.members.length > 0 
-      ? participant.members.map(member => `${member.name} (${member.email})`).join('; ')
+      ? participant.members.map(member => `${member.name} (${member.email || ''}${member.mobile || member.phone ? ', ' : ''}${member.mobile || member.phone || ''})`).join('; ')
       : 'N/A';
     const membersCount = participant.members?.length || 0;
     const isTeam = participant.isTeam ? 'Yes' : 'No';
@@ -42,6 +43,7 @@ export const exportParticipantsToCSV = (participants) => {
     const attendanceMarkedAt = participant.attendanceMarkedAt ? new Date(participant.attendanceMarkedAt).toLocaleString() : 'N/A';
 
     return [
+      participant._eventName || '',
       registeredAt,
       teamName,
       leaderName,
