@@ -21,6 +21,8 @@ const Reports = () => {
   const events = eventsArr || [];
 
   const tokenFromStore = useSelector(selectAccessToken);
+  const [isDownloadingAll, setIsDownloadingAll] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
 
   const { data: usersData } = useGetAllUsersQuery({ limit: 10000, page: 1, search: "" });
   const users = usersData?.users || usersData?.data || [];
@@ -50,6 +52,9 @@ const Reports = () => {
       return;
     }
 
+    setIsDownloadingAll(true);
+    setDownloadProgress({ current: 0, total: events.length });
+
     try {
       // Get access token from redux store via window.__REDUX_STATE__ fallback or fetch without header (cookie-based)
       // Prefer using current auth token from local store if available
@@ -69,6 +74,7 @@ const Reports = () => {
 
         if (!res.ok) {
           // skip this event on error
+          setDownloadProgress((p) => ({ ...p, current: p.current + 1 }));
           continue;
         }
 
@@ -81,6 +87,9 @@ const Reports = () => {
           p._eventName = ev.name || "";
           allParticipants.push(p);
         });
+
+        // update progress after successful fetch
+        setDownloadProgress((p) => ({ ...p, current: p.current + 1 }));
       }
 
       if (allParticipants.length === 0) {
@@ -99,6 +108,11 @@ const Reports = () => {
       // eslint-disable-next-line no-console
       console.error(err);
       alert('Failed to fetch participants for all events');
+    }
+    finally {
+      setIsDownloadingAll(false);
+      // reset progress after short delay so user can see 100%
+      setTimeout(() => setDownloadProgress({ current: 0, total: 0 }), 1200);
     }
   };
 
@@ -165,11 +179,11 @@ const Reports = () => {
             ))}
           </select>
 
-          <button onClick={handleDownloadEventCSV} disabled={!selectedEvent}>
+          <button onClick={handleDownloadEventCSV} disabled={!selectedEvent || isDownloadingAll}>
             Download Event Participants CSV
           </button>
-          <button onClick={handleDownloadAllEventsCSV} style={{ marginLeft: 8 }}>
-            Download All Events Participants CSV
+          <button onClick={handleDownloadAllEventsCSV} style={{ marginLeft: 8 }} disabled={isDownloadingAll}>
+            {isDownloadingAll ? `Downloading (${downloadProgress.current}/${downloadProgress.total})` : 'Download All Events Participants CSV'}
           </button>
         </div>
       </section>
