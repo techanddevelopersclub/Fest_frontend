@@ -40,7 +40,7 @@ const ParticipationTable = ({ eventId }) => {
     
     return participations.filter((participation) => {
       const teamSize = participation.teamSize || 1;
-      const teamName = participation.teamName || "";
+      //const teamName = participation.teamName || "";
       const attendance = participation.attendance || "pending";
       
       const teamSizeMatch = !teamSizeFilter || teamSize.toString() === teamSizeFilter;
