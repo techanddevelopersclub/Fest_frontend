@@ -8,7 +8,7 @@ import ListTile from "../../../../../../components/ListTile/ListTile";
 const DetailsModal = ({ close, participation }) => {
   const user = useSelector(selectUser);
   const { event, members } = participation;
-  const leader = members.find((member) => member._id === participation.leader);
+  const leader = (members && members.length > 0) ? members.find((member) => member._id === participation.leader) : null;
 
   return (
     <Modal title={event.name} close={close}>
@@ -25,29 +25,41 @@ const DetailsModal = ({ close, participation }) => {
       </div>
       <div className={styles.details}>
         <h2 className={styles.title}>Team Members</h2>
-        {members.map((member) => (
-          <ListTile
-            key={member._id}
-            leading={
-              <Avatar
-                image={member.image}
-                avatarCode={member.avatarCode}
-                name={member.name}
-                size={40}
-              />
-            }
-            title={member.name}
-            subtitle={member.email}
-            trailing={
-              (member._id === leader._id && (
-                <span className={styles.extra}>(Leader)</span>
-              )) ||
-              (member._id === user._id && (
-                <span className={styles.extra}>(You)</span>
-              ))
-            }
-          />
-        ))}
+        {members && members.length > 0 ? (
+          members.map((member) => (
+            <ListTile
+              key={member._id}
+              leading={
+                <Avatar
+                  image={member.image}
+                  avatarCode={member.avatarCode}
+                  name={member.name}
+                  size={40}
+                />
+              }
+              title={member.name}
+              subtitle={member.email}
+              trailing={
+                (member._id === leader?._id && (
+                  <span className={styles.extra}>(Leader)</span>
+                )) ||
+                (member._id === user._id && (
+                  <span className={styles.extra}>(You)</span>
+                ))
+              }
+            />
+          ))
+        ) : Array.isArray(participation.teamMemberNames) && participation.teamMemberNames.length > 0 ? (
+          participation.teamMemberNames.map((name, idx) => (
+            <ListTile
+              key={`name-${idx}`}
+              title={name}
+              subtitle={"(Unregistered user)"}
+            />
+          ))
+        ) : (
+          <p>No members</p>
+        )}
       </div>
     </Modal>
   );

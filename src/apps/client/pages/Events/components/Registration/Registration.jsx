@@ -212,7 +212,7 @@ const handleSubmit = async (e) => {
       // Build members array: always include leader + member IDs
       const members = [...new Set([...memberIds, user._id])];
       const teamMemberNames = [...memberNames, user.name];
-      const teamSize = members.length;
+      const teamSize = membersNotRegistered ? teamMemberNames.length : members.length;
 
       const participantData = {
         event: event._id,
@@ -281,7 +281,7 @@ const handleSubmit = async (e) => {
       // Build members array from state
       const members = [...new Set([...memberIds, user._id])];
       const teamMemberNames = [...memberNames, user.name];
-      const teamSize = members.length;
+      const teamSize = membersNotRegistered ? teamMemberNames.length : members.length;
 
       const pendingData = {
         event: event._id,

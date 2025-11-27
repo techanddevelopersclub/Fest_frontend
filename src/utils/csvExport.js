@@ -36,8 +36,10 @@ export const exportParticipantsToCSV = (participants) => {
     const teamSize = participant.teamSize || 1;
     const teamMembers = participant.members && participant.members.length > 0 
       ? participant.members.map(member => `${member.name} (${member.email || ''}${member.mobile || member.phone ? ', ' : ''}${member.mobile || member.phone || ''})`).join('; ')
-      : 'N/A';
-    const membersCount = participant.members?.length || 0;
+      : Array.isArray(participant.teamMemberNames) && participant.teamMemberNames.length > 0
+        ? participant.teamMemberNames.join('; ')
+        : 'N/A';
+    const membersCount = participant.members?.length || (Array.isArray(participant.teamMemberNames) ? participant.teamMemberNames.length : 0);
     const isTeam = participant.isTeam ? 'Yes' : 'No';
     const attendance = participant.attendance || 'pending';
     const attendanceMarkedAt = participant.attendanceMarkedAt ? new Date(participant.attendanceMarkedAt).toLocaleString() : 'N/A';

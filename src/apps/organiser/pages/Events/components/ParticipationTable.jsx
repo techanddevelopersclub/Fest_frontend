@@ -40,7 +40,7 @@ const ParticipationTable = ({ eventId }) => {
     
     return participations.filter((participation) => {
       const teamSize = participation.teamSize || 1;
-      //const teamName = participation.teamName || "";
+      const teamName = participation.teamName || "";
       const attendance = participation.attendance || "pending";
       
       const teamSizeMatch = !teamSizeFilter || teamSize.toString() === teamSizeFilter;
@@ -102,15 +102,25 @@ const ParticipationTable = ({ eventId }) => {
     {
       label: "Team/Participant Members",
       key: "members",
-      modifier: (value) => {
-        if (!value || value.length === 0) return "N/A";
-        return value.map(member => `${member.name} (${member.email})`).join(", ");
+      modifier: (value, row) => {
+        // Prefer populated member objects, otherwise use teamMemberNames if available
+        if (value && value.length > 0) {
+          return value.map(member => `${member.name} (${member.email || 'N/A'})`).join(", ");
+        }
+        if (row && Array.isArray(row.teamMemberNames) && row.teamMemberNames.length > 0) {
+          return row.teamMemberNames.join(", ");
+        }
+        return "N/A";
       },
     },
     {
       label: "Members Count",
       key: "members",
-      modifier: (value) => value?.length || 0,
+      modifier: (value, row) => {
+        const membersCount = value?.length || 0;
+        const namesCount = Array.isArray(row?.teamMemberNames) ? row.teamMemberNames.length : 0;
+        return Math.max(membersCount, namesCount);
+      },
     },
     {
       label: "Attendance",
