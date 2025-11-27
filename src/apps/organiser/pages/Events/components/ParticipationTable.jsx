@@ -114,6 +114,14 @@ const ParticipationTable = ({ eventId }) => {
       },
     },
     {
+      label: "Team Member Names",
+      key: "teamMemberNames",
+      modifier: (value) => {
+        if (Array.isArray(value) && value.length > 0) return value.join(", ");
+        return "N/A";
+      },
+    },
+    {
       label: "Members Count",
       key: "members",
       modifier: (value, row) => {

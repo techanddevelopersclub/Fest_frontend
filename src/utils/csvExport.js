@@ -19,6 +19,7 @@ export const exportParticipantsToCSV = (participants) => {
     'Leader Branch',
     'Team Size',
     'Team Members (email, mobile)',
+    'Team Member Names',
     'Members Count',
     'Is Team',
     'Attendance',
@@ -39,6 +40,7 @@ export const exportParticipantsToCSV = (participants) => {
       : Array.isArray(participant.teamMemberNames) && participant.teamMemberNames.length > 0
         ? participant.teamMemberNames.join('; ')
         : 'N/A';
+    const teamMemberNames = Array.isArray(participant.teamMemberNames) && participant.teamMemberNames.length > 0 ? participant.teamMemberNames.join('; ') : '';
     const membersCount = participant.members?.length || (Array.isArray(participant.teamMemberNames) ? participant.teamMemberNames.length : 0);
     const isTeam = participant.isTeam ? 'Yes' : 'No';
     const attendance = participant.attendance || 'pending';
@@ -54,6 +56,7 @@ export const exportParticipantsToCSV = (participants) => {
       leaderBranch,
       teamSize,
       teamMembers,
+      teamMemberNames,
       membersCount,
       isTeam,
       attendance,
