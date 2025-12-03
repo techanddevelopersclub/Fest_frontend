@@ -29,6 +29,17 @@ const participantsApi = api.injectEndpoints({
       }),
       invalidatesTags: ["Participants"],
     }),
+    adminBulkRegisterParticipants: builder.mutation({
+      query: ({ basicDetails, eventIds }) => ({
+        url: "/participants/admin/bulk",
+        method: "POST",
+        body: {
+          basicDetails,
+          eventIds,
+        },
+      }),
+      invalidatesTags: ["Participants"],
+    }),
   }),
 });
 
@@ -37,4 +48,5 @@ export const {
   useGetParticipationsBySelfQuery,
   useGetParticipationsByEventIdQuery,
   useUpdateParticipantAttendanceMutation,
+  useAdminBulkRegisterParticipantsMutation,
 } = participantsApi;

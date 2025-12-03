@@ -140,6 +140,12 @@ const ALL_LINKS = [
     icon: <MdAssessment />,
     roles: ["admin"], // Only admins
   },
+  {
+    text: "Bulk Registration",
+    path: "/admin/registrations/bulk",
+    icon: <FaUsers />,
+    roles: ["admin"], // Only admins
+  },
 ];
 
 const AdminSidebarProvider = ({ children }) => {
